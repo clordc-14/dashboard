@@ -10,10 +10,15 @@ import "./styles/base.css";
 import "./styles/dashboard.css";
 
 const app = document.querySelector("#app");
-let dashboardState = loadDashboardState() || demoDashboardData;
+let dashboardState = demoDashboardData;
 let notice = null;
 
-renderDashboard();
+initializeDashboard();
+
+async function initializeDashboard() {
+  dashboardState = (await loadDashboardState()) || demoDashboardData;
+  renderDashboard();
+}
 
 function renderDashboard() {
   const summary = getDashboardSummary(dashboardState);
@@ -123,7 +128,7 @@ async function handleFile(file) {
     const workbook = await readExcelFile(file);
     const nextState = buildDashboardState(workbook);
     dashboardState = nextState;
-    saveDashboardState(nextState);
+    await saveDashboardState(nextState);
 
     notice = {
       type: "success",

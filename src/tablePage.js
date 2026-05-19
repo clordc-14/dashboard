@@ -6,9 +6,9 @@ import "./styles/base.css";
 import "./styles/dashboard.css";
 
 const app = document.querySelector("#tableApp");
-const dashboardState = loadDashboardState() || demoDashboardData;
+let dashboardState = demoDashboardData;
 const initialSectionKey = new URLSearchParams(window.location.search).get("section");
-let selectedSectionKey = pickInitialSectionKey(initialSectionKey);
+let selectedSectionKey = "";
 let tableState = {
   search: "",
   filter: "all",
@@ -18,7 +18,13 @@ let tableState = {
   pageSize: 10
 };
 
-renderPage();
+initializeTablePage();
+
+async function initializeTablePage() {
+  dashboardState = (await loadDashboardState()) || demoDashboardData;
+  selectedSectionKey = pickInitialSectionKey(initialSectionKey);
+  renderPage();
+}
 
 function renderPage() {
   app.innerHTML = `
