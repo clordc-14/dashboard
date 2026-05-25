@@ -56,6 +56,131 @@ export const dashboardConfig = {
   ]
 };
 
+const archivedProductColumns = [
+  { key: "sequence", label: "序号", field: "sequence" },
+  { key: "productName", label: "品种名称", field: "productName" },
+  { key: "companyName", label: "厂牌", field: "companyName" },
+  { key: "brandType", label: "厂牌类型", field: "brandType" },
+  { key: "approvalDate", label: "获批时间", field: "approvalDate" },
+  { key: "indication", label: "获批适应症", field: "indication" },
+  { key: "diseaseArea", label: "疾病领域", field: "diseaseArea" },
+  { key: "registrationCategory", label: "注册分类", field: "registrationCategory" },
+  { key: "drugType", label: "药品类型", field: "drugType" },
+  { key: "therapyType", label: "药品治疗类型", field: "therapyType" },
+  { key: "targetCount", label: "靶点数目", field: "targetCount" },
+  { key: "target", label: "靶点", field: "target" },
+  { key: "purchase", label: "采购", field: "purchase" },
+  { key: "rating", label: "评价", field: "rating" }
+];
+
+const archivedProductDemoRows = [
+  createArchivedProductRow(1, {
+    sequence: "1",
+    productName: "磷酸芦可替尼乳膏",
+    companyName: "康哲",
+    brandType: "内资传统",
+    approvalDate: "2026-01-27",
+    indication: "用于治疗 12 岁及以上儿童和成人患者伴面部受累的非节段型白癜风",
+    diseaseArea: "皮肤疾病药物",
+    registrationCategory: "5.1",
+    drugType: "化学药品",
+    therapyType: "小分子化药",
+    targetCount: "2",
+    target: "JAK1/2",
+    purchase: "喻娜",
+    rating: "⭐⭐⭐⭐⭐"
+  }),
+  createArchivedProductRow(2, {
+    sequence: "2",
+    productName: "安沐奇塔单抗注射液(益赛拓)",
+    companyName: "三生国健",
+    brandType: "内资创新",
+    approvalDate: "2026-02-10",
+    indication: "用于治疗适合系统治疗或光疗的中度至重度斑块状银屑病成人患者。",
+    diseaseArea: "皮肤疾病药物",
+    registrationCategory: "3.1",
+    drugType: "治疗用生物制品",
+    therapyType: "单克隆抗体",
+    targetCount: "1",
+    target: "IL-17A",
+    purchase: "郑莹晶",
+    rating: "⭐⭐⭐⭐"
+  }),
+  createArchivedProductRow(3, {
+    sequence: "3",
+    productName: "瑞拉芙普α注射液",
+    companyName: "恒瑞",
+    brandType: "内资传统",
+    approvalDate: "2026-01-07",
+    indication: "联合氟尿嘧啶类和铂类药物用于经充分验证的检测评估PD-L1阳性的胃及胃食管结合部腺癌一线治疗。",
+    diseaseArea: "抗肿瘤药物",
+    registrationCategory: "1",
+    drugType: "治疗用生物制品",
+    therapyType: "融合蛋白",
+    targetCount: "2",
+    target: "PD-L1/TGF-βRII trap",
+    purchase: "雷磊",
+    rating: "⭐⭐⭐⭐"
+  }),
+  createArchivedProductRow(4, {
+    sequence: "4",
+    productName: "宗艾替尼片(圣赫途)",
+    companyName: "勃林格",
+    brandType: "外资传统",
+    approvalDate: "2025-08-29",
+    indication: "EGFR突变非小细胞肺癌",
+    diseaseArea: "抗肿瘤药物",
+    registrationCategory: "5.1",
+    drugType: "化学药品",
+    therapyType: "小分子化药",
+    targetCount: "1",
+    target: "EGFR T790M",
+    purchase: "朱华",
+    rating: "⭐⭐⭐⭐⭐"
+  }),
+  createArchivedProductRow(5, {
+    sequence: "5",
+    productName: "注射用德达博妥单抗(达卓优)",
+    companyName: "阿斯利康",
+    brandType: "外资创新",
+    approvalDate: "2025-08-22",
+    indication: "HER2阳性胃癌",
+    diseaseArea: "抗肿瘤药物",
+    registrationCategory: "3.1",
+    drugType: "治疗用生物制品",
+    therapyType: "抗体偶联药物",
+    targetCount: "1",
+    target: "TROP2 ADC",
+    purchase: "吴姣",
+    rating: "⭐⭐⭐⭐⭐"
+  }),
+  createArchivedProductRow(6, {
+    sequence: "6",
+    productName: "盐酸阿曲生坦片",
+    companyName: "诺华",
+    brandType: "外资传统",
+    approvalDate: "2025-08-20",
+    indication: "慢性肾脏病相关蛋白尿",
+    diseaseArea: "泌尿系统疾病药物",
+    registrationCategory: "5.1",
+    drugType: "化学药品",
+    therapyType: "小分子化药",
+    targetCount: "1",
+    target: "ETA",
+    purchase: "吴姣",
+    rating: "⭐⭐⭐⭐⭐"
+  })
+];
+
+function createArchivedProductRow(index, values) {
+  return {
+    id: `archivedProducts-demo-${index}`,
+    values,
+    fields: values,
+    links: {}
+  };
+}
+
 export const demoDashboardData = {
   meta: {
     mode: "demo",
@@ -72,19 +197,21 @@ export const demoDashboardData = {
       type: "news",
       items: [
         {
-          title: "重点厂牌完成首轮产品目录沟通",
-          summary: "已整理对方重点管线、当前合作诉求和待确认价格区间，进入商务评估阶段。",
-          sourceName: "内部周报",
-          sourceUrl: "",
-          publishDate: "2026-05-17",
+          sequence: "1",
+          title: "全球首创！阿斯利康高血压新药获批上市",
+          summary: "",
+          sourceName: "",
+          sourceUrl: "https://mp.weixin.qq.com/s/G6_rPsyd3ps_nNX-4EI0Zw",
+          publishDate: "2026年5月21日",
           category: "本周重点信息"
         },
         {
-          title: "三项待协助事项需管理层确认推进口径",
-          summary: "涉及渠道授权、首批采购规模和区域独家条件，建议本周完成会签。",
-          sourceName: "引进小组",
-          sourceUrl: "",
-          publishDate: "2026-05-16",
+          sequence: "2",
+          title: "拜耳 1 类新药申报上市，用于预防非心源性缺血性卒中或短暂性脑缺血发作（TIA）后患者的缺血性卒中",
+          summary: "",
+          sourceName: "",
+          sourceUrl: "https://mp.weixin.qq.com/s/fTc1Frvh4tGqflcmvAQlbA",
+          publishDate: "2026年5月22日",
           category: "本周重点信息"
         }
       ]
@@ -95,12 +222,34 @@ export const demoDashboardData = {
       type: "news",
       items: [
         {
-          title: "示例：肿瘤领域创新药新增上市信息待核验",
-          summary: "请以上传 Excel 中维护的新闻源为准；系统仅展示合法 http/https 链接。",
-          sourceName: "示例数据",
-          sourceUrl: "https://example.com/news",
-          publishDate: "2026-05-12",
-          category: "上周上市创新药回顾"
+          sequence: "1",
+          title: "卡泊三醇倍他米松泡沫剂（恩适达）",
+          summary: "",
+          sourceName: "",
+          sourceUrl: "",
+          publishDate: "2026年5月21日",
+          category: "上周上市创新药回顾",
+          productName: "卡泊三醇倍他米松泡沫剂（恩适达）",
+          companyName: "励奥",
+          indication: "用于银屑症治疗（指南一线，外用，剂型创新）",
+          registrationCategory: "5.1类",
+          progress: "已联系，尚未落地，资料未全，等待资料建档中",
+          updatedAt: "2026年5月21日"
+        },
+        {
+          sequence: "2",
+          title: "注射用重组特立帕肽",
+          summary: "",
+          sourceName: "",
+          sourceUrl: "",
+          publishDate: "2026年5月21日",
+          category: "上周上市创新药回顾",
+          productName: "注射用重组特立帕肽",
+          companyName: "信立泰",
+          indication: "用于治疗有骨折高发风险的绝经后妇女骨质疏松症（国内首仿长效）",
+          registrationCategory: "3.4类",
+          progress: "已联系，尚未落地，资料未全，等待资料建档中",
+          updatedAt: "2026年5月21日"
         }
       ]
     }
@@ -110,52 +259,9 @@ export const demoDashboardData = {
       key: "archivedProducts",
       title: "已建档品种明细",
       type: "table",
-      source: { sheetName: "示例数据", startRow: 1, endRow: 3, matchType: "demo" },
-      columns: [
-        { key: "productName", label: "品种名称", field: "productName" },
-        { key: "companyName", label: "生产企业 / 厂牌", field: "companyName" },
-        { key: "status", label: "当前状态", field: "status" },
-        { key: "owner", label: "负责人", field: "owner" },
-        { key: "progress", label: "引进进展", field: "progress" }
-      ],
-      rows: [
-        {
-          id: "archivedProducts-demo-1",
-          values: {
-            productName: "SZ-101",
-            companyName: "西南示例制药",
-            status: "已建档",
-            owner: "市场准入部",
-            progress: "资料齐全，待商务评估"
-          },
-          fields: {
-            productName: "SZ-101",
-            companyName: "西南示例制药",
-            status: "已建档",
-            owner: "市场准入部",
-            progress: "资料齐全，待商务评估"
-          },
-          links: {}
-        },
-        {
-          id: "archivedProducts-demo-2",
-          values: {
-            productName: "GSW-224",
-            companyName: "华西创新药业",
-            status: "重点跟进",
-            owner: "业务拓展部",
-            progress: "已完成样本资料初审"
-          },
-          fields: {
-            productName: "GSW-224",
-            companyName: "华西创新药业",
-            status: "重点跟进",
-            owner: "业务拓展部",
-            progress: "已完成样本资料初审"
-          },
-          links: {}
-        }
-      ]
+      source: { sheetName: "已建档品种明细示例", startRow: 1, endRow: 7, matchType: "demo" },
+      columns: archivedProductColumns,
+      rows: archivedProductDemoRows
     },
     {
       key: "needLeaderSupport",

@@ -7,10 +7,12 @@ import "./styles/dashboard.css";
 
 const app = document.querySelector("#tableApp");
 let dashboardState = demoDashboardData;
-const initialSectionKey = new URLSearchParams(window.location.search).get("section");
+const initialParams = new URLSearchParams(window.location.search);
+const initialSectionKey = initialParams.get("section");
+const initialSearch = initialParams.get("search") || "";
 let selectedSectionKey = "";
 let tableState = {
-  search: "",
+  search: initialSearch,
   filter: "all",
   sortKey: "",
   sortDir: "asc",
@@ -127,6 +129,7 @@ function createToolbar(section) {
   search.value = tableState.search;
   search.addEventListener("input", (event) => {
     tableState = { ...tableState, search: event.target.value, page: 1 };
+    syncTableUrl();
     renderSelectedTable();
     createIcons({ icons });
   });
@@ -290,6 +293,13 @@ function toggleSort(columnKey) {
   }
   renderSelectedTable();
   createIcons({ icons });
+}
+
+function syncTableUrl() {
+  const params = new URLSearchParams({ section: selectedSectionKey });
+  const search = tableState.search.trim();
+  if (search) params.set("search", search);
+  history.replaceState(null, "", `/table.html?${params.toString()}`);
 }
 
 function getSelectedSection() {

@@ -1,16 +1,29 @@
 const fieldAliases = {
-  title: ["title", "新闻标题", "标题", "信息标题", "重点标题"],
-  summary: ["summary", "摘要", "内容", "重点内容", "新闻摘要", "信息内容", "说明"],
+  sequence: ["sequence", "序号", "编号", "序"],
+  title: ["title", "新闻标题", "标题", "信息标题", "重点标题", "新闻总览", "新闻内容"],
+  summary: ["summary", "摘要", "内容", "重点内容", "新闻摘要", "信息内容", "说明", "新闻提炼"],
   sourceName: ["sourceName", "来源", "来源名称", "新闻来源", "媒体"],
-  sourceUrl: ["sourceUrl", "链接", "新闻源链接", "源地址", "url", "URL", "网址", "地址"],
+  sourceUrl: ["sourceUrl", "链接", "原链接", "原文链接", "来源链接", "新闻源链接", "源地址", "url", "URL", "网址", "地址"],
   publishDate: ["publishDate", "发布时间", "发布日期", "日期", "时间"],
   category: ["category", "所属板块", "分类", "板块"],
-  productName: ["productName", "品种名称", "品种", "药品名称", "产品名称", "通用名"],
+  productName: ["productName", "品种名称", "品名", "品种", "药品名称", "产品名称", "通用名"],
   companyName: ["companyName", "生产企业", "厂牌", "厂家", "企业", "公司", "合作方"],
+  brandType: ["brandType", "厂牌类型", "企业类型"],
+  approvalDate: ["approvalDate", "获批时间", "获批日期", "批准时间", "上市时间"],
+  indication: ["indication", "适应症", "适用症", "获批适应症"],
+  diseaseArea: ["diseaseArea", "疾病领域", "治疗领域"],
+  registrationCategory: ["registrationCategory", "注册分类", "注册类别", "分类"],
+  drugType: ["drugType", "药品类型", "药物类型"],
+  therapyType: ["therapyType", "药品治疗类型", "治疗类型"],
+  targetCount: ["targetCount", "靶点数目", "靶点数量"],
+  target: ["target", "靶点"],
+  purchase: ["purchase", "采购", "采购负责人"],
+  rating: ["rating", "评价", "星级"],
   status: ["status", "当前状态", "状态", "项目状态", "建档状态"],
   cooperationStatus: ["cooperationStatus", "合作状态", "合作情况", "协作状态"],
   owner: ["owner", "负责人", "责任人", "跟进人", "对接人"],
-  progress: ["progress", "引进进展", "进展", "跟进进展", "推进情况"],
+  progress: ["progress", "引进进展", "进展提炼", "进展", "跟进进展", "推进情况"],
+  updatedAt: ["updatedAt", "更新时间", "更新日期", "更新"],
   remark: ["remark", "备注", "说明", "补充说明"]
 };
 
@@ -35,9 +48,10 @@ export function normalizeNewsSection(match, sectionConfig) {
     title: match.displayTitle || sectionConfig.title,
     type: "news",
     source: buildSource(match),
-    items: items
-      .filter((item) => item.title)
-      .sort((left, right) => getTimeValue(right.publishDate) - getTimeValue(left.publishDate))
+    items: sortNewsItems(
+      items.filter((item) => item.title),
+      sectionConfig
+    )
   };
 }
 
@@ -109,12 +123,19 @@ function normalizeNewsWithHeader(rows, headerIndex, sectionConfig) {
   const headers = rows[headerIndex].map((cell) => identifyField(cellText(cell)));
   return rows.slice(headerIndex + 1).map((row) => {
     const item = {
+      sequence: "",
       title: "",
       summary: "",
       sourceName: "",
       sourceUrl: "",
       publishDate: "",
-      category: sectionConfig.title
+      category: sectionConfig.title,
+      productName: "",
+      companyName: "",
+      indication: "",
+      registrationCategory: "",
+      progress: "",
+      updatedAt: ""
     };
 
     row.forEach((cell, index) => {
@@ -123,6 +144,8 @@ function normalizeNewsWithHeader(rows, headerIndex, sectionConfig) {
       const value = cellText(cell);
       if (field === "sourceUrl") {
         item.sourceUrl = pickValidUrl(value, linkText(cell));
+      } else if (field === "publishDate" || field === "updatedAt") {
+        item[field] = formatDisplayDate(value);
       } else if (field in item) {
         item[field] = value;
       }
@@ -132,6 +155,10 @@ function normalizeNewsWithHeader(rows, headerIndex, sectionConfig) {
       }
     });
 
+    if (!item.title && sectionConfig.key === "lastWeekInnovativeDrugs") {
+      item.title = item.productName;
+    }
+    if (!item.publishDate && item.updatedAt) item.publishDate = item.updatedAt;
     if (!item.title) item.title = firstNonEmpty(row);
     return item;
   });
@@ -143,12 +170,19 @@ function normalizeNewsWithoutHeader(rows, sectionConfig) {
     const link = row.map(linkText).find(isValidHttpUrl) || values.find(isValidHttpUrl) || "";
 
     return {
+      sequence: values[0] && /^\d+$/.test(values[0]) ? values[0] : "",
       title: values[0] || "",
       summary: values.slice(1, 3).filter((value) => !isValidHttpUrl(value)).join("；"),
       sourceName: "",
       sourceUrl: pickValidUrl(link),
-      publishDate: values.find(looksLikeDate) || "",
-      category: sectionConfig.title
+      publishDate: formatDisplayDate(values.find(looksLikeDate) || ""),
+      category: sectionConfig.title,
+      productName: "",
+      companyName: "",
+      indication: "",
+      registrationCategory: "",
+      progress: "",
+      updatedAt: ""
     };
   });
 }
@@ -269,7 +303,9 @@ function linkText(cell) {
 }
 
 function firstNonEmpty(row) {
-  return row.map(cellText).find(Boolean) || "";
+  return row
+    .map(cellText)
+    .find((value) => value && !isValidHttpUrl(value) && !/^\d+$/.test(value)) || "";
 }
 
 function hasAnyValue(values) {
@@ -307,11 +343,85 @@ function buildSource(match) {
 }
 
 function looksLikeDate(value) {
-  return /^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/.test(value) || /^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}/.test(value);
+  const text = String(value ?? "").trim();
+  return (
+    /^\d{4}[-/.年]\d{1,2}[-/.月]\d{1,2}/.test(text) ||
+    /^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}/.test(text) ||
+    isExcelSerialDate(text)
+  );
 }
 
 function getTimeValue(value) {
   if (!value) return 0;
-  const time = Date.parse(String(value).replace(/\./g, "-"));
+  const dateParts = parseDateParts(value);
+  if (dateParts) {
+    return Date.UTC(dateParts.year, dateParts.month - 1, dateParts.day);
+  }
+
+  const time = Date.parse(String(value).replace(/[年月.]/g, "-").replace("日", ""));
   return Number.isNaN(time) ? 0 : time;
+}
+
+function sortNewsItems(items, sectionConfig) {
+  if (items.some((item) => item.sequence)) {
+    return [...items].sort((left, right) => {
+      const leftSequence = Number.parseFloat(left.sequence);
+      const rightSequence = Number.parseFloat(right.sequence);
+      if (Number.isFinite(leftSequence) && Number.isFinite(rightSequence)) {
+        return leftSequence - rightSequence;
+      }
+      return 0;
+    });
+  }
+
+  if (sectionConfig?.sortByDate === false) return items;
+
+  return [...items].sort((left, right) => getTimeValue(right.publishDate) - getTimeValue(left.publishDate));
+}
+
+function formatDisplayDate(value) {
+  const parts = parseDateParts(value);
+  if (!parts) return String(value ?? "").trim();
+  return `${parts.year}年${parts.month}月${parts.day}日`;
+}
+
+function parseDateParts(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+
+  if (isExcelSerialDate(text)) {
+    const serial = Number.parseFloat(text);
+    const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      day: date.getUTCDate()
+    };
+  }
+
+  const isoMatch = text.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/);
+  if (isoMatch) {
+    return {
+      year: Number(isoMatch[1]),
+      month: Number(isoMatch[2]),
+      day: Number(isoMatch[3])
+    };
+  }
+
+  const slashMatch = text.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
+  if (slashMatch) {
+    const year = Number(slashMatch[3]);
+    return {
+      year: year < 100 ? 2000 + year : year,
+      month: Number(slashMatch[1]),
+      day: Number(slashMatch[2])
+    };
+  }
+
+  return null;
+}
+
+function isExcelSerialDate(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 20000 && number <= 80000;
 }

@@ -97,9 +97,9 @@ function findMergedAnchorCell(sheet, rowIndex, columnIndex) {
 
 function formatCellValue(cell) {
   if (cell.v === undefined || cell.v === null) return "";
+  if (cell.w !== undefined && cell.w !== null) return String(cell.w).trim();
   if (cell.v instanceof Date) return toDateText(cell.v);
   if (cell.t === "d") return toDateText(new Date(cell.v));
-  if (cell.w !== undefined && cell.w !== null) return String(cell.w).trim();
   return String(cell.v).trim();
 }
 
