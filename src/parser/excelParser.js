@@ -32,10 +32,11 @@ export function validateExcelFile(file) {
 function parseWorkbook(workbook) {
   const sheets = workbook.SheetNames.map((name) => {
     const sheet = workbook.Sheets[name];
+    const meaningfulRange = getMeaningfulRange(sheet);
     return {
       name,
-      rows: extractRows(sheet),
-      range: sheet["!ref"] || "",
+      rows: extractRows(sheet, meaningfulRange),
+      range: meaningfulRange ? XLSX.utils.encode_range(meaningfulRange) : "",
       merges: sheet["!merges"] || []
     };
   });
@@ -47,11 +48,9 @@ function parseWorkbook(workbook) {
   };
 }
 
-function extractRows(sheet) {
-  const ref = sheet["!ref"];
-  if (!ref) return [];
+function extractRows(sheet, range) {
+  if (!range) return [];
 
-  const range = XLSX.utils.decode_range(ref);
   const rows = [];
 
   for (let rowIndex = range.s.r; rowIndex <= range.e.r; rowIndex += 1) {
@@ -63,6 +62,39 @@ function extractRows(sheet) {
   }
 
   return rows;
+}
+
+function getMeaningfulRange(sheet) {
+  if (!sheet) return null;
+
+  return Object.keys(sheet).reduce((range, address) => {
+    if (address.startsWith("!")) return range;
+
+    const cell = sheet[address];
+    if (!hasMeaningfulCell(cell)) return range;
+
+    const position = XLSX.utils.decode_cell(address);
+    if (!range) {
+      return {
+        s: { ...position },
+        e: { ...position }
+      };
+    }
+
+    range.s.r = Math.min(range.s.r, position.r);
+    range.s.c = Math.min(range.s.c, position.c);
+    range.e.r = Math.max(range.e.r, position.r);
+    range.e.c = Math.max(range.e.c, position.c);
+    return range;
+  }, null);
+}
+
+function hasMeaningfulCell(cell) {
+  if (!cell) return false;
+  if (normalizeCellLink(cell)) return true;
+  if (cell.f) return true;
+  if (cell.v !== undefined && cell.v !== null && String(cell.v).trim()) return true;
+  return cell.w !== undefined && cell.w !== null && String(cell.w).trim() !== "";
 }
 
 function readCell(sheet, rowIndex, columnIndex) {

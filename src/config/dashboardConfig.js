@@ -181,6 +181,15 @@ function createArchivedProductRow(index, values) {
   };
 }
 
+function createDemoTableRow(id, values) {
+  return {
+    id,
+    values,
+    fields: values,
+    links: {}
+  };
+}
+
 export const demoDashboardData = {
   meta: {
     mode: "demo",
@@ -267,38 +276,289 @@ export const demoDashboardData = {
       key: "needLeaderSupport",
       title: "需领导协助引进（未合作厂牌）",
       type: "table",
-      source: { sheetName: "示例数据", startRow: 1, endRow: 3, matchType: "demo" },
+      source: { sheetName: "需领导协助引进示例", startRow: 1, endRow: 4, matchType: "demo" },
       columns: [
-        { key: "productName", label: "品种名称", field: "productName" },
+        { key: "sequence", label: "序号", field: "sequence" },
+        { key: "productName", label: "通用名", field: "productName" },
+        { key: "tradeName", label: "商品名", field: "tradeName" },
         { key: "companyName", label: "厂牌", field: "companyName" },
-        { key: "cooperationStatus", label: "合作状态", field: "cooperationStatus" },
-        { key: "owner", label: "负责人", field: "owner" },
-        { key: "remark", label: "备注", field: "remark" }
+        { key: "approvalDate", label: "获批时间", field: "approvalDate" },
+        { key: "priorityReview", label: "是否优先审评审批", field: "priorityReview" },
+        { key: "indication", label: "获批适应症", field: "indication" },
+        { key: "mainAdvantage", label: "主要优势", field: "mainAdvantage" },
+        { key: "landedInSichuan", label: "是否落地四川", field: "landedInSichuan" },
+        { key: "southwestArchived", label: "是否建档", field: "southwestArchived" },
+        { key: "rating", label: "评价", field: "rating" }
       ],
       rows: [
-        {
-          id: "needLeaderSupport-demo-1",
-          values: {
-            productName: "INN-86",
-            companyName: "未合作厂牌 A",
-            cooperationStatus: "需协助",
-            owner: "采购协同组",
-            remark: "需确认区域授权条件"
-          },
-          fields: {
-            productName: "INN-86",
-            companyName: "未合作厂牌 A",
-            cooperationStatus: "需协助",
-            owner: "采购协同组",
-            remark: "需确认区域授权条件"
-          },
-          links: {}
-        }
+        createDemoTableRow("needLeaderSupport-demo-1", {
+          sequence: "352",
+          productName: "利沙托克拉片",
+          tradeName: "/",
+          companyName: "亚盛",
+          approvalDate: "2025-07-08",
+          priorityReview: "优先审评",
+          indication: "慢性淋巴细胞白血病",
+          mainAdvantage: "首款获批上市的国产原研Bcl-2抑制剂",
+          landedInSichuan: "是",
+          southwestArchived: "否",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("needLeaderSupport-demo-2", {
+          sequence: "401",
+          productName: "复方氯丝右哌甲酯胶囊",
+          tradeName: "/",
+          companyName: "爱科百发",
+          approvalDate: "2025-12-30",
+          priorityReview: "优先审评",
+          indication: "马来酸美凡厄替尼片",
+          mainAdvantage: "国内首个兼具速效和长效的ADHD药物",
+          landedInSichuan: "否",
+          southwestArchived: "否",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("needLeaderSupport-demo-3", {
+          sequence: "409",
+          productName: "立贝韦塔单抗注射液",
+          tradeName: "/",
+          companyName: "华辉安健",
+          approvalDate: "2026-01-20",
+          priorityReview: "",
+          indication: "用于治疗 HDV 感染",
+          mainAdvantage: "",
+          landedInSichuan: "否",
+          southwestArchived: "否",
+          rating: "⭐⭐⭐"
+        })
       ]
     },
-    ...["introductionProgress", "innovativeDrugPool", "partnerCommunication"].map((key, index) => ({
-      key,
-      title: ["新药引进进展", "上市创新药品种池", "合作厂牌沟通记录"][index],
+    {
+      key: "introductionProgress",
+      title: "新药引进进展",
+      type: "table",
+      source: { sheetName: "新药引进进展示例", startRow: 1, endRow: 7, matchType: "demo" },
+      columns: [
+        { key: "sequence", label: "序号", field: "sequence" },
+        { key: "productName", label: "通用名", field: "productName" },
+        { key: "tradeName", label: "商品名", field: "tradeName" },
+        { key: "companyName", label: "厂牌", field: "companyName" },
+        { key: "approvalDate", label: "获批时间", field: "approvalDate" },
+        { key: "purchase", label: "采购", field: "purchase" },
+        { key: "landedInSichuan", label: "落地四川", field: "landedInSichuan" },
+        { key: "southwestArchived", label: "是否建档", field: "southwestArchived" },
+        { key: "progress", label: "最新进展", field: "progress" },
+        { key: "purchaseRemark", label: "采购备注", field: "purchaseRemark" },
+        { key: "rating", label: "评价", field: "rating" }
+      ],
+      rows: [
+        createDemoTableRow("introductionProgress-demo-1", {
+          sequence: "416",
+          productName: "硫酸索西美雷塞片",
+          tradeName: "/",
+          companyName: "济民可信",
+          approvalDate: "2026-02-25",
+          purchase: "司道琴",
+          landedInSichuan: "是",
+          southwestArchived: "否",
+          progress: "一、无法动作",
+          purchaseRemark: "有赠药，与零售多次沟通过我司不能做当期票折",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("introductionProgress-demo-2", {
+          sequence: "417",
+          productName: "罗伐昔替尼片",
+          tradeName: "/",
+          companyName: "正大天晴",
+          approvalDate: "2026-02-25",
+          purchase: "侯雪华",
+          landedInSichuan: "",
+          southwestArchived: "",
+          progress: "三、沟通中（待定）",
+          purchaseRemark: "苗锐：19850611002",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("introductionProgress-demo-3", {
+          sequence: "421",
+          productName: "特泽利尤单抗注射液",
+          tradeName: "泰适卓",
+          companyName: "阿斯利康/安进",
+          approvalDate: "2026-03-25",
+          purchase: "吴姣",
+          landedInSichuan: "否",
+          southwestArchived: "否",
+          progress: "三、沟通中（待定）",
+          purchaseRemark: "",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("introductionProgress-demo-4", {
+          sequence: "123",
+          productName: "呫诺美林曲司氯铵胶囊（II）",
+          tradeName: "/",
+          companyName: "再鼎",
+          approvalDate: "2025-12-22",
+          purchase: "朱华",
+          landedInSichuan: "否",
+          southwestArchived: "否",
+          progress: "一、无法动作",
+          purchaseRemark: "预计26Q2落地市场，筛选药房中",
+          rating: "⭐⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("introductionProgress-demo-5", {
+          sequence: "407",
+          productName: "奥洛格列净胶囊",
+          tradeName: "东泽安",
+          companyName: "东阳光",
+          approvalDate: "2026-01-16",
+          purchase: "蒋琴",
+          landedInSichuan: "否",
+          southwestArchived: "是，Q3",
+          progress: "二、等待建档",
+          purchaseRemark: "厂家资料未出，出来就会建档",
+          rating: "⭐⭐⭐"
+        }),
+        createDemoTableRow("introductionProgress-demo-6", {
+          sequence: "434",
+          productName: "注射用重组特立帕肽",
+          tradeName: "/",
+          companyName: "信立泰",
+          approvalDate: "2026-05-12",
+          purchase: "雷磊",
+          landedInSichuan: "否",
+          southwestArchived: "否",
+          progress: "七、调货品种",
+          purchaseRemark: "已经申请建档",
+          rating: "0"
+        })
+      ]
+    },
+    {
+      key: "innovativeDrugPool",
+      title: "上市创新药品种池",
+      type: "table",
+      source: { sheetName: "上市创新药品种池示例", startRow: 1, endRow: 8, matchType: "demo" },
+      columns: [
+        { key: "sequence", label: "序号", field: "sequence" },
+        { key: "productName", label: "通用名", field: "productName" },
+        { key: "tradeName", label: "商品名", field: "tradeName" },
+        { key: "southwestName", label: "西南名称（CMS品名）", field: "southwestName" },
+        { key: "companyName", label: "厂牌", field: "companyName" },
+        { key: "brandType", label: "厂牌类型", field: "brandType" },
+        { key: "approvalDate", label: "获批时间", field: "approvalDate" },
+        { key: "landedInSichuan", label: "是否落地四川", field: "landedInSichuan" },
+        { key: "southwestArchived", label: "是否建档", field: "southwestArchived" },
+        { key: "currentSituation", label: "目前情况", field: "currentSituation" },
+        { key: "rating", label: "评价", field: "rating" }
+      ],
+      rows: [
+        createDemoTableRow("innovativeDrugPool-demo-1", {
+          sequence: "404",
+          productName: "瑞拉芙普α注射液",
+          tradeName: "/",
+          southwestName: "瑞拉芙普α注射液",
+          companyName: "恒瑞",
+          brandType: "内资传统",
+          approvalDate: "2026-01-07",
+          landedInSichuan: "是",
+          southwestArchived: "是",
+          currentSituation: "已建档",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("innovativeDrugPool-demo-2", {
+          sequence: "405",
+          productName: "注射用人促甲状腺素β",
+          tradeName: "泽速宁",
+          southwestName: "注射用人促甲状腺素β",
+          companyName: "泽璟生物",
+          brandType: "内资创新",
+          approvalDate: "2026-01-08",
+          landedInSichuan: "是",
+          southwestArchived: "是",
+          currentSituation: "已建档",
+          rating: "⭐⭐⭐"
+        }),
+        createDemoTableRow("innovativeDrugPool-demo-3", {
+          sequence: "412",
+          productName: "磷酸芦可替尼乳膏",
+          tradeName: "/",
+          southwestName: "磷酸芦可替尼乳膏",
+          companyName: "康哲",
+          brandType: "内资传统",
+          approvalDate: "2026-01-27",
+          landedInSichuan: "是",
+          southwestArchived: "是",
+          currentSituation: "已建档",
+          rating: "⭐⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("innovativeDrugPool-demo-4", {
+          sequence: "414",
+          productName: "安沐奇塔单抗注射液",
+          tradeName: "益赛拓",
+          southwestName: "安沐奇塔单抗注射液(益赛拓)",
+          companyName: "三生国健",
+          brandType: "内资创新",
+          approvalDate: "2026-02-10",
+          landedInSichuan: "是",
+          southwestArchived: "是",
+          currentSituation: "已建档",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("innovativeDrugPool-demo-5", {
+          sequence: "416",
+          productName: "硫酸索西美雷塞片",
+          tradeName: "/",
+          southwestName: "/",
+          companyName: "济民可信",
+          brandType: "内资传统",
+          approvalDate: "2026-02-25",
+          landedInSichuan: "是",
+          southwestArchived: "否",
+          currentSituation: "一、无法动作",
+          rating: "⭐⭐⭐⭐"
+        }),
+        createDemoTableRow("innovativeDrugPool-demo-6", {
+          sequence: "419",
+          productName: "罗赛促红素 α注射液",
+          tradeName: "新比澳",
+          southwestName: "/",
+          companyName: "三生",
+          brandType: "内资传统",
+          approvalDate: "2026-03-17",
+          landedInSichuan: "是",
+          southwestArchived: "否",
+          currentSituation: "五、需求建档",
+          rating: "⭐⭐"
+        }),
+        createDemoTableRow("innovativeDrugPool-demo-7", {
+          sequence: "431",
+          productName: "苯甲酸安达艾替尼胶囊",
+          tradeName: "/",
+          southwestName: "/",
+          companyName: "鞍石生物",
+          brandType: "内资创新",
+          approvalDate: "2026-04-30",
+          landedInSichuan: "是",
+          southwestArchived: "否",
+          currentSituation: "一、无法动作（国控四川独家）",
+          rating: "⭐⭐"
+        }),
+        createDemoTableRow("innovativeDrugPool-demo-8", {
+          sequence: "435",
+          productName: "注射用重组特立帕肽",
+          tradeName: "/",
+          southwestName: "/",
+          companyName: "信立泰",
+          brandType: "内资创新",
+          approvalDate: "2026-05-12",
+          landedInSichuan: "否",
+          southwestArchived: "否",
+          currentSituation: "二、等待建档",
+          rating: ""
+        })
+      ]
+    },
+    {
+      key: "partnerCommunication",
+      title: "合作厂牌沟通记录",
       type: "table",
       source: { sheetName: "示例数据", startRow: 1, endRow: 2, matchType: "demo" },
       columns: [
@@ -308,23 +568,13 @@ export const demoDashboardData = {
         { key: "remark", label: "备注", field: "remark" }
       ],
       rows: [
-        {
-          id: `${key}-demo-1`,
-          values: {
-            productName: ["示例品种 P1", "示例创新药 I1", "示例沟通事项 C1"][index],
-            status: ["跟进中", "待评估", "已联系"][index],
-            progress: ["等待资料补充", "纳入重点观察", "已约定下次沟通"][index],
-            remark: "上传 Excel 后将替换为真实数据"
-          },
-          fields: {
-            productName: ["示例品种 P1", "示例创新药 I1", "示例沟通事项 C1"][index],
-            status: ["跟进中", "待评估", "已联系"][index],
-            progress: ["等待资料补充", "纳入重点观察", "已约定下次沟通"][index],
-            remark: "上传 Excel 后将替换为真实数据"
-          },
-          links: {}
-        }
+        createDemoTableRow("partnerCommunication-demo-1", {
+          productName: "示例沟通事项 C1",
+          status: "已联系",
+          progress: "已约定下次沟通",
+          remark: "上传 Excel 后将替换为真实数据"
+        })
       ]
-    }))
+    }
   ]
 };

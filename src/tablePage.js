@@ -59,7 +59,7 @@ function renderSectionNav() {
   const nav = document.querySelector(".section-nav");
   nav.replaceChildren();
 
-  dashboardState.tableSections.forEach((section) => {
+  getVisibleTableSections().forEach((section) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = section.key === selectedSectionKey ? "section-tab is-active" : "section-tab";
@@ -303,10 +303,16 @@ function syncTableUrl() {
 }
 
 function getSelectedSection() {
-  return dashboardState.tableSections.find((section) => section.key === selectedSectionKey) || dashboardState.tableSections[0];
+  const sections = getVisibleTableSections();
+  return sections.find((section) => section.key === selectedSectionKey) || sections[0];
 }
 
 function pickInitialSectionKey(key) {
-  const exists = dashboardState.tableSections.some((section) => section.key === key);
-  return exists ? key : dashboardState.tableSections[0]?.key;
+  const sections = getVisibleTableSections();
+  const exists = sections.some((section) => section.key === key);
+  return exists ? key : sections[0]?.key;
+}
+
+function getVisibleTableSections() {
+  return dashboardState.tableSections.filter((section) => section.key !== "partnerCommunication");
 }

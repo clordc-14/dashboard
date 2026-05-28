@@ -31,6 +31,7 @@
 
 html {
   min-height: 100%;
+  overflow-x: hidden;
   background: var(--bg);
 }
 
@@ -38,6 +39,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
   color: var(--text);
   background:
     linear-gradient(180deg, rgba(230, 244, 241, 0.72) 0, rgba(244, 247, 248, 0) 260px),
