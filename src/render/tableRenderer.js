@@ -1,3 +1,5 @@
+import { tableSectionOrder } from "../config/dashboardConfig.js";
+
 const POOL_SERIES = [
   { key: "newDrugCount", label: "上市新药数", color: "#0f766e" },
   { key: "landedSichuanCount", label: "落地四川数", color: "#245b89" },
@@ -42,62 +44,73 @@ const timeFilterValues = new Map();
 export function renderTableCards(container, sections = [], onOpen) {
   container.replaceChildren();
 
-  sections.filter((section) => !isPartnerCommunication(section)).forEach((section) => {
-    if (isNeedLeaderSupport(section)) {
-      container.append(createNeedLeaderSupportCard(section, onOpen));
-      return;
-    }
+  sortTableSectionsByDisplayOrder(sections)
+    .filter((section) => !isPartnerCommunication(section))
+    .forEach((section) => {
+      if (isNeedLeaderSupport(section)) {
+        container.append(createNeedLeaderSupportCard(section, onOpen));
+        return;
+      }
 
-    if (isIntroductionProgress(section)) {
-      container.append(createIntroductionProgressCard(section, onOpen));
-      return;
-    }
+      if (isIntroductionProgress(section)) {
+        container.append(createIntroductionProgressCard(section, onOpen));
+        return;
+      }
 
-    if (isInnovativeDrugPool(section)) {
-      container.append(createInnovativeDrugPoolCard(section, onOpen));
-      return;
-    }
+      if (isInnovativeDrugPool(section)) {
+        container.append(createInnovativeDrugPoolCard(section, onOpen));
+        return;
+      }
 
-    const card = document.createElement("article");
-    card.className = isArchivedProducts(section) ? "table-card is-archived-products" : "table-card";
-    card.id = `card-${section.key}`;
+      const card = document.createElement("article");
+      card.className = isArchivedProducts(section) ? "table-card is-archived-products" : "table-card";
+      card.id = `card-${section.key}`;
 
-    const heading = document.createElement("div");
-    heading.className = "panel-heading";
+      const heading = document.createElement("div");
+      heading.className = "panel-heading";
 
-    const titleWrap = document.createElement("div");
-    const title = document.createElement("h2");
-    title.textContent = section.title;
-    const source = document.createElement("p");
-    source.className = "source-note";
-    source.textContent = section.source?.sheetName ? `来源：${section.source.sheetName}` : "未识别到对应板块";
-    titleWrap.append(title, source);
+      const titleWrap = document.createElement("div");
+      const title = document.createElement("h2");
+      title.textContent = section.title;
+      const source = document.createElement("p");
+      source.className = "source-note";
+      source.textContent = section.source?.sheetName ? `来源：${section.source.sheetName}` : "未识别到对应板块";
+      titleWrap.append(title, source);
 
-    const button = document.createElement("button");
-    button.className = "icon-button";
-    button.type = "button";
-    button.title = "查看完整表格";
-    button.setAttribute("aria-label", `查看${section.title}`);
-    button.innerHTML = '<i data-lucide="arrow-right"></i>';
-    button.addEventListener("click", () => onOpen(section.key));
+      const button = document.createElement("button");
+      button.className = "icon-button";
+      button.type = "button";
+      button.title = "查看完整表格";
+      button.setAttribute("aria-label", `查看${section.title}`);
+      button.innerHTML = '<i data-lucide="arrow-right"></i>';
+      button.addEventListener("click", () => onOpen(section.key));
 
-    heading.append(titleWrap, button);
-    card.append(heading);
+      heading.append(titleWrap, button);
+      card.append(heading);
 
-    const metrics = createMetrics(section);
-    card.append(metrics);
+      const metrics = createMetrics(section);
+      card.append(metrics);
 
-    if (!hasPreviewRows(section) || !section.columns.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
-      empty.textContent = isArchivedProducts(section) ? "暂无符合条件的四/五星品种" : "暂无表格数据";
-      card.append(empty);
-    } else {
-      card.append(createPreviewTable(section));
-    }
+      if (!hasPreviewRows(section) || !section.columns.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = isArchivedProducts(section) ? "暂无符合条件的四/五星品种" : "暂无表格数据";
+        card.append(empty);
+      } else {
+        card.append(createPreviewTable(section));
+      }
 
-    container.append(card);
-  });
+      container.append(card);
+    });
+}
+
+export function sortTableSectionsByDisplayOrder(sections = []) {
+  return [...sections].sort((left, right) => getTableSectionOrderIndex(left.key) - getTableSectionOrderIndex(right.key));
+}
+
+function getTableSectionOrderIndex(key) {
+  const index = tableSectionOrder.indexOf(key);
+  return index === -1 ? tableSectionOrder.length : index;
 }
 
 export function computeTableMetrics(section) {

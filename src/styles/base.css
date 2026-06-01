@@ -1,19 +1,19 @@
 :root {
   color-scheme: light;
-  --bg: #f4f7f8;
+  --bg: #f2f4f6;
   --surface: #ffffff;
-  --surface-strong: #f9fbfb;
+  --surface-strong: #f8fbfa;
   --line: #dce5e7;
   --line-strong: #c2d1d5;
   --text: #172528;
   --muted: #66777d;
-  --teal: #0f766e;
-  --teal-dark: #115e59;
-  --blue: #245b89;
+  --teal: #14826d;
+  --teal-dark: #0f6858;
+  --blue: #173f73;
   --amber: #b7791f;
   --red: #b42318;
-  --green-soft: #e6f4f1;
-  --blue-soft: #e7f0f7;
+  --green-soft: #dff3ea;
+  --blue-soft: #e6eef7;
   --amber-soft: #fff4dc;
   --red-soft: #feeceb;
   --shadow: 0 14px 36px rgba(25, 50, 55, 0.08);
@@ -41,9 +41,7 @@ body {
   margin: 0;
   overflow-x: hidden;
   color: var(--text);
-  background:
-    linear-gradient(180deg, rgba(230, 244, 241, 0.72) 0, rgba(244, 247, 248, 0) 260px),
-    var(--bg);
+  background: var(--bg);
   font-size: 14px;
   line-height: 1.5;
   letter-spacing: 0;
@@ -133,6 +131,14 @@ a:hover {
   color: var(--teal-dark);
   background: var(--green-soft);
   border-radius: 8px;
+}
+
+.search-highlight {
+  padding: 0 2px;
+  color: #163b68;
+  background: #ccefe1;
+  border-radius: 4px;
+  font-weight: 900;
 }
 
 .eyebrow {

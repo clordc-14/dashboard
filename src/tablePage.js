@@ -1,11 +1,12 @@
 import { createIcons, icons } from "lucide";
-import { demoDashboardData } from "./config/dashboardConfig.js";
+import { demoWorkbookState as demoDashboardData } from "./config/demoWorkbookState.js";
 import { loadDashboardState } from "./state/storage.js";
-import { getDisplayValue } from "./render/tableRenderer.js";
+import { getDisplayValue, sortTableSectionsByDisplayOrder } from "./render/tableRenderer.js";
 import "./styles/base.css";
 import "./styles/dashboard.css";
 
 const app = document.querySelector("#tableApp");
+const sinopharmLogoUrl = new URL("./assets/sinopharm-logo.png", import.meta.url).href;
 let dashboardState = demoDashboardData;
 const initialParams = new URLSearchParams(window.location.search);
 const initialSectionKey = initialParams.get("section");
@@ -32,13 +33,13 @@ function renderPage() {
   app.innerHTML = `
     <div class="app-shell detail-shell">
       <header class="topbar">
-        <div class="brand">
-          <div class="brand-mark">药</div>
+        <a class="brand" href="/" aria-label="国药西南新药引进网首页">
+          <img class="brand-logo" src="${sinopharmLogoUrl}" alt="国药集团" />
           <div>
             <h1>表格详情</h1>
             <p>国药西南新药引进网</p>
           </div>
-        </div>
+        </a>
         <div class="topbar-actions">
           <a class="button button-ghost" href="/"><i data-lucide="arrow-left"></i><span>返回首页</span></a>
         </div>
@@ -170,6 +171,7 @@ function createTableArea(section) {
   const tableWrap = document.createElement("div");
   tableWrap.className = "table-wrap full-table";
   const table = document.createElement("table");
+  table.style.minWidth = `${Math.max(960, section.columns.length * 132)}px`;
 
   const thead = document.createElement("thead");
   const headRow = document.createElement("tr");
@@ -205,10 +207,10 @@ function createTableArea(section) {
         anchor.href = link;
         anchor.target = "_blank";
         anchor.rel = "noopener noreferrer";
-        anchor.textContent = value || "查看链接";
+        appendHighlightedText(anchor, value || "查看链接", tableState.search);
         td.append(anchor);
       } else {
-        td.textContent = value;
+        appendHighlightedText(td, value, tableState.search);
       }
 
       tr.append(td);
@@ -314,5 +316,38 @@ function pickInitialSectionKey(key) {
 }
 
 function getVisibleTableSections() {
-  return dashboardState.tableSections.filter((section) => section.key !== "partnerCommunication");
+  return sortTableSectionsByDisplayOrder(dashboardState.tableSections).filter((section) => section.key !== "partnerCommunication");
+}
+
+function appendHighlightedText(node, value, query) {
+  const text = String(value ?? "");
+  const needle = query.trim();
+  if (!needle) {
+    node.textContent = text;
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  const lowerText = text.toLowerCase();
+  const lowerNeedle = needle.toLowerCase();
+  let cursor = 0;
+  let index = lowerText.indexOf(lowerNeedle);
+
+  if (index === -1) {
+    node.textContent = text;
+    return;
+  }
+
+  while (index !== -1) {
+    if (index > cursor) fragment.append(document.createTextNode(text.slice(cursor, index)));
+    const mark = document.createElement("mark");
+    mark.className = "search-highlight";
+    mark.textContent = text.slice(index, index + needle.length);
+    fragment.append(mark);
+    cursor = index + needle.length;
+    index = lowerText.indexOf(lowerNeedle, cursor);
+  }
+
+  if (cursor < text.length) fragment.append(document.createTextNode(text.slice(cursor)));
+  node.replaceChildren(fragment);
 }

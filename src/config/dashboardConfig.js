@@ -1,3 +1,11 @@
+export const tableSectionOrder = [
+  "innovativeDrugPool",
+  "introductionProgress",
+  "needLeaderSupport",
+  "archivedProducts",
+  "partnerCommunication"
+];
+
 export const dashboardConfig = {
   upload: {
     acceptedExtensions: ["xlsx", "xls"],
@@ -6,7 +14,7 @@ export const dashboardConfig = {
   newsSections: [
     {
       key: "weeklyFocus",
-      title: "本周重点信息",
+      title: "本周要闻",
       matchTitle: "本周重点信息",
       type: "news",
       aliases: ["本周重点", "重点信息", "周重点"]
@@ -202,7 +210,7 @@ export const demoDashboardData = {
   newsSections: [
     {
       key: "weeklyFocus",
-      title: "本周重点信息",
+      title: "本周要闻",
       type: "news",
       items: [
         {
@@ -212,7 +220,7 @@ export const demoDashboardData = {
           sourceName: "",
           sourceUrl: "https://mp.weixin.qq.com/s/G6_rPsyd3ps_nNX-4EI0Zw",
           publishDate: "2026年5月21日",
-          category: "本周重点信息"
+          category: "时政要闻"
         },
         {
           sequence: "2",
@@ -221,7 +229,7 @@ export const demoDashboardData = {
           sourceName: "",
           sourceUrl: "https://mp.weixin.qq.com/s/fTc1Frvh4tGqflcmvAQlbA",
           publishDate: "2026年5月22日",
-          category: "本周重点信息"
+          category: "时政要闻"
         }
       ]
     },

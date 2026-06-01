@@ -1,15 +1,18 @@
 import { createIcons, icons } from "lucide";
-import { dashboardConfig, demoDashboardData } from "./config/dashboardConfig.js";
+import { dashboardConfig } from "./config/dashboardConfig.js";
+import { demoWorkbookState as demoDashboardData } from "./config/demoWorkbookState.js";
 import { readExcelFile } from "./parser/excelParser.js";
 import { matchWorkbookSections } from "./parser/sectionMatcher.js";
 import { normalizeNewsSection, normalizeTableSection } from "./parser/normalizer.js";
 import { renderNewsSections } from "./render/newsRenderer.js";
-import { computeTableMetrics, renderTableCards } from "./render/tableRenderer.js";
+import { renderTableCards } from "./render/tableRenderer.js";
 import { loadDashboardState, saveDashboardState } from "./state/storage.js";
 import "./styles/base.css";
 import "./styles/dashboard.css";
 
 const app = document.querySelector("#app");
+const sinopharmLogoUrl = new URL("./assets/sinopharm-logo.png", import.meta.url).href;
+const guideItems = ["创新药", "麻精", "罕见病", "集采原研", "HIV药品"];
 let dashboardState = demoDashboardData;
 let notice = null;
 
@@ -21,43 +24,50 @@ async function initializeDashboard() {
 }
 
 function renderDashboard() {
-  const summary = getDashboardSummary(dashboardState);
+  const overview = getBusinessOverview(dashboardState);
   const meta = dashboardState.meta || {};
 
   app.innerHTML = `
     <div class="app-shell">
       <header class="topbar">
-        <div class="brand">
-          <div class="brand-mark">药</div>
+        <a class="brand" href="/" aria-label="国药西南新药引进网首页">
+          <img class="brand-logo" src="${sinopharmLogoUrl}" alt="国药集团" />
           <div>
             <h1>国药西南新药引进网</h1>
             <p>新药引进经营看板</p>
           </div>
-        </div>
-        <div class="topbar-actions">
-          <span class="last-update"><i data-lucide="clock-3"></i><span>${formatDateTime(meta.updatedAt)}</span></span>
-          <label class="button button-primary" for="excelInput"><i data-lucide="upload"></i><span>上传 Excel</span></label>
-          <input id="excelInput" type="file" accept=".xlsx,.xls" hidden />
+        </a>
+        <div class="topbar-tools">
+          <form class="keyword-search" action="/search.html" method="get" target="_blank">
+            <label class="keyword-search-field">
+              <i data-lucide="search"></i>
+              <input name="q" type="search" placeholder="关键词检索" aria-label="关键词检索" required />
+            </label>
+            <button class="icon-button keyword-search-submit" type="submit" title="打开检索结果" aria-label="打开检索结果">
+              <i data-lucide="arrow-up-right"></i>
+            </button>
+          </form>
+          <div class="topbar-actions">
+            <span class="last-update"><i data-lucide="clock-3"></i><span>${formatDateTime(meta.updatedAt)}</span></span>
+            <label class="button button-primary" for="excelInput"><i data-lucide="upload"></i><span>上传 Excel</span></label>
+            <input id="excelInput" type="file" accept=".xlsx,.xls" hidden />
+          </div>
         </div>
       </header>
 
-      <main>
-        <section class="status-band" id="uploadZone">
-          <div>
-            <span class="eyebrow">${meta.mode === "demo" ? "示例数据" : "已解析数据"}</span>
-            <h2>经营信息总览</h2>
-          </div>
-          <div class="status-meta">
-            <span><i data-lucide="file-spreadsheet"></i>${meta.sheetCount || 0} 个工作表</span>
-            <span><i data-lucide="shield-check"></i>不展示原始文件路径</span>
-          </div>
-        </section>
+      <nav class="guide-nav" aria-label="业务导引">
+        ${guideItems
+          .map((item, index) =>
+            index === 0
+              ? `<a class="guide-item is-active" href="#innovation-content">${item}</a>`
+              : `<button class="guide-item" type="button" data-guide-pending="${item}">${item}</button>`
+          )
+          .join("")}
+      </nav>
 
-        <section class="summary-grid" aria-label="数据摘要">
-          <article class="summary-card"><span>新闻条目</span><strong>${summary.newsCount}</strong></article>
-          <article class="summary-card"><span>表格板块</span><strong>${summary.tableCount}</strong></article>
-          <article class="summary-card"><span>明细记录</span><strong>${summary.rowCount}</strong></article>
-          <article class="summary-card"><span>待协助项</span><strong>${summary.assistCount}</strong></article>
+      <main id="innovation-content">
+        <section class="status-band overview-band" id="uploadZone" aria-label="经营信息总览，可拖拽上传 Excel">
+          <p class="business-overview"><strong>经营信息总览：</strong>${overview.text}</p>
         </section>
 
         <div id="noticeHost"></div>
@@ -87,8 +97,9 @@ function renderDashboard() {
   `;
 
   bindUpload();
+  bindGuideNav();
   renderNotice();
-  renderNewsSections(document.querySelector("#newsSections"), dashboardState.newsSections);
+  renderNewsSections(document.querySelector("#newsSections"), dashboardState.newsSections, dashboardState.tableSections);
   renderTableCards(document.querySelector("#tableCards"), dashboardState.tableSections, openTableSection);
   createIcons({ icons });
 }
@@ -117,6 +128,17 @@ function bindUpload() {
     uploadZone.classList.remove("is-dragging");
     const file = event.dataTransfer?.files?.[0];
     if (file) handleFile(file);
+  });
+}
+
+function bindGuideNav() {
+  document.querySelectorAll("[data-guide-pending]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const name = button.dataset.guidePending;
+      notice = { type: "warning", text: `${name}板块尚待开发，当前首页先展示创新药相关信息。` };
+      renderNotice();
+      document.querySelector("#noticeHost")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   });
 }
 
@@ -203,13 +225,69 @@ function openTableSection(sectionKey) {
   window.location.href = `/table.html?section=${encodeURIComponent(sectionKey)}`;
 }
 
-function getDashboardSummary(state) {
-  const newsCount = state.newsSections.reduce((total, section) => total + section.items.length, 0);
-  const rowCount = state.tableSections.reduce((total, section) => total + section.rows.length, 0);
-  const assistCount = state.tableSections.reduce((total, section) => total + computeTableMetrics(section).assistCount, 0);
-  const tableCount = state.tableSections.filter((section) => section.rows.length).length;
+function getBusinessOverview(state) {
+  const poolSection = state.tableSections.find((section) => section.key === "innovativeDrugPool");
+  const approved2026Rows = poolSection?.rows.filter((row) => getApprovalYear(row) === 2026) || [];
+  const landedCount = approved2026Rows.filter((row) => isAffirmative(getRowField(row, "landedInSichuan"))).length;
+  const archivedCount = approved2026Rows.filter((row) => isAffirmative(getRowField(row, "southwestArchived"))).length;
+  const archiveRate = landedCount ? Math.round((archivedCount / landedCount) * 100) : 0;
 
-  return { newsCount, rowCount, assistCount, tableCount };
+  return {
+    text: `2026年至今，NMPA批准上市创新药${approved2026Rows.length}个，落地四川${landedCount}个，国药西南建档${archivedCount}个，建档率${archiveRate}%。`
+  };
+}
+
+function getRowField(row, field) {
+  return row.fields?.[field] || row.values?.[field] || "";
+}
+
+function getApprovalYear(row) {
+  return getDateParts(getRowField(row, "approvalDate"))?.year || 0;
+}
+
+function isAffirmative(value) {
+  const text = String(value ?? "").trim().toLowerCase();
+  return (
+    ["是", "yes", "y", "true", "1", "已落地", "已建档", "√"].includes(text) ||
+    text.startsWith("是，") ||
+    text.startsWith("是,")
+  );
+}
+
+function getDateParts(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+
+  const serial = Number(text);
+  if (Number.isFinite(serial) && serial >= 20000 && serial <= 80000) {
+    const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
+    return {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      day: date.getUTCDate()
+    };
+  }
+
+  const isoMatch = text.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/);
+  if (isoMatch) {
+    return {
+      year: Number(isoMatch[1]),
+      month: Number(isoMatch[2]),
+      day: Number(isoMatch[3])
+    };
+  }
+
+  const slashMatch = text.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/);
+  if (slashMatch) {
+    const year = Number(slashMatch[3]);
+    return {
+      year: year < 100 ? 2000 + year : year,
+      month: Number(slashMatch[1]),
+      day: Number(slashMatch[2])
+    };
+  }
+
+  return null;
 }
 
 function formatDateTime(value) {
