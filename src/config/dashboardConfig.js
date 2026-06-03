@@ -1,5 +1,6 @@
 export const tableSectionOrder = [
   "innovativeDrugPool",
+  "weeklyNewArchived",
   "introductionProgress",
   "needLeaderSupport",
   "archivedProducts",
@@ -21,7 +22,7 @@ export const dashboardConfig = {
     },
     {
       key: "lastWeekInnovativeDrugs",
-      title: "上周上市创新药回顾",
+      title: "本周引进进展",
       matchTitle: "上周上市创新药回顾",
       type: "news",
       aliases: ["上市创新药回顾", "上周创新药", "创新药回顾"]
@@ -33,6 +34,12 @@ export const dashboardConfig = {
       title: "已建档品种明细",
       matchTitle: "已建档品种明细",
       aliases: ["已建档品种", "建档品种", "品种明细"]
+    },
+    {
+      key: "weeklyNewArchived",
+      title: "本周新增建档",
+      matchTitle: "本周新增建档",
+      aliases: ["本周新增建档品种", "新增建档", "本周建档"]
     },
     {
       key: "needLeaderSupport",

@@ -54,7 +54,7 @@ export const demoWorkbookState = {
     },
     {
       "key": "lastWeekInnovativeDrugs",
-      "title": "上周上市创新药回顾",
+      "title": "本周引进进展",
       "type": "news",
       "source": {
         "sheetName": "上周上市创新药回顾",

@@ -129,9 +129,10 @@ function findMergedAnchorCell(sheet, rowIndex, columnIndex) {
 
 function formatCellValue(cell) {
   if (cell.v === undefined || cell.v === null) return "";
+  const displayDate = parseDisplayDate(cell.w);
+  if (cell.v instanceof Date) return displayDate || toDateText(cell.v);
+  if (cell.t === "d") return displayDate || toDateText(new Date(cell.v));
   if (cell.w !== undefined && cell.w !== null) return String(cell.w).trim();
-  if (cell.v instanceof Date) return toDateText(cell.v);
-  if (cell.t === "d") return toDateText(new Date(cell.v));
   return String(cell.v).trim();
 }
 
@@ -146,4 +147,27 @@ function toDateText(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function parseDisplayDate(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+
+  const isoMatch = text.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})/);
+  if (isoMatch) {
+    return toDatePartsText(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]));
+  }
+
+  const slashMatch = text.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
+  if (slashMatch) {
+    const year = Number(slashMatch[3]);
+    return toDatePartsText(year < 100 ? 2000 + year : year, Number(slashMatch[1]), Number(slashMatch[2]));
+  }
+
+  return "";
+}
+
+function toDatePartsText(year, month, day) {
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return "";
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }

@@ -171,7 +171,11 @@ export function computeTableMetrics(section) {
 }
 
 export function getDisplayValue(row, column) {
-  return row.values?.[column.key] ?? "";
+  const value = row.values?.[column.key] ?? "";
+  if (column.date || column.field === "approvalDate" || column.key === "approvalDate") {
+    return formatApprovalDate(value);
+  }
+  return value;
 }
 
 function createInnovativeDrugPoolCard(section, onOpen) {

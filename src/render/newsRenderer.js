@@ -11,6 +11,11 @@ export function renderNewsSections(container, sections = [], tableSections = [])
       return;
     }
 
+    if (section.key === "lastWeekInnovativeDrugs") {
+      container.append(createWeeklyIntroductionProgressCard(section, tableSections));
+      return;
+    }
+
     const card = document.createElement("article");
     card.className = "news-column";
 
@@ -64,9 +69,9 @@ function createWeeklyHighlightsCard(section, tableSections) {
   stack.className = "weekly-news-stack";
   stack.append(
     createNewsSubsection({
-      title: "西南要闻",
+      title: "本周上市新品",
       items: southwestItems,
-      emptyText: "近一周暂无新获批创新药品种",
+      emptyText: "本周暂无上市新品",
       renderItem: createSouthwestNewsItem
     }),
     createNewsSubsection({
@@ -74,6 +79,46 @@ function createWeeklyHighlightsCard(section, tableSections) {
       items: politicsItems,
       emptyText: "暂无时政要闻数据",
       renderItem: (item, index) => createFocusNewsItem(item, index)
+    })
+  );
+
+  card.append(stack);
+  return card;
+}
+
+function createWeeklyIntroductionProgressCard(section, tableSections) {
+  const archivedItems = getWeeklyNewArchivedItems(tableSections);
+  const reviewItems = section.items || [];
+  const card = document.createElement("article");
+  card.className = "news-column weekly-highlights weekly-progress";
+
+  const header = document.createElement("div");
+  header.className = "panel-heading";
+
+  const title = document.createElement("h2");
+  title.textContent = section.title || "本周引进进展";
+
+  const count = document.createElement("span");
+  count.className = "count-pill";
+  count.textContent = `${archivedItems.length + reviewItems.length} 条`;
+
+  header.append(title, count);
+  card.append(header);
+
+  const stack = document.createElement("div");
+  stack.className = "weekly-news-stack";
+  stack.append(
+    createNewsSubsection({
+      title: "本周新增建档品种",
+      items: archivedItems,
+      emptyText: "本周暂无新增建档品种",
+      renderItem: createWeeklyArchivedNewsItem
+    }),
+    createNewsSubsection({
+      title: "上周上市创新药回顾",
+      items: reviewItems,
+      emptyText: "暂无上周上市创新药回顾数据",
+      renderItem: (item, index) => createDrugReviewItem(item, index)
     })
   );
 
@@ -157,7 +202,7 @@ function createDrugReviewItem(item, index) {
 
   const number = document.createElement("span");
   number.className = "news-index";
-  number.textContent = getSequence(item, index);
+  number.textContent = String(index + 1);
 
   const body = document.createElement("div");
   body.className = "drug-review-body";
@@ -202,6 +247,50 @@ function createDrugReviewItem(item, index) {
   progress.append(progressNote, update);
   node.append(progress);
 
+  return node;
+}
+
+function createWeeklyArchivedNewsItem(item, index) {
+  const node = document.createElement("article");
+  node.className = "news-item southwest-news-item weekly-archived-news-item";
+
+  const number = document.createElement("span");
+  number.className = "news-index";
+  number.textContent = String(index + 1);
+
+  const body = document.createElement("div");
+  body.className = "southwest-news-body";
+
+  const title = document.createElement("h3");
+  title.className = "drug-name";
+  title.textContent = item.southwestName || item.productName || "未命名品种";
+  body.append(title);
+
+  const tags = document.createElement("div");
+  tags.className = "drug-tags southwest-news-tags";
+  [
+    item.companyName ? `厂牌：${item.companyName}` : "",
+    item.approvalDate ? `获批：${item.approvalDate}` : "",
+    item.registrationCategory ? `注册分类：${item.registrationCategory}` : "",
+    item.target ? `靶点：${item.target}` : "",
+    item.purchase ? `采购：${item.purchase}` : ""
+  ]
+    .filter(Boolean)
+    .forEach((value) => {
+      const tag = document.createElement("span");
+      tag.textContent = value;
+      tags.append(tag);
+    });
+  if (tags.childElementCount) body.append(tags);
+
+  if (item.indication) {
+    const indication = document.createElement("p");
+    indication.className = "drug-indication southwest-indication";
+    indication.textContent = item.indication;
+    body.append(indication);
+  }
+
+  node.append(number, body);
   return node;
 }
 
@@ -282,6 +371,23 @@ function getSouthwestWeeklyItems(tableSections) {
       rating: getRowField(row, "rating"),
       approvalDate: formatApprovalDate(getRowField(row, "approvalDate"))
     }));
+}
+
+function getWeeklyNewArchivedItems(tableSections) {
+  const section = tableSections.find((candidate) => candidate.key === "weeklyNewArchived");
+  if (!section?.rows?.length) return [];
+
+  return section.rows.map((row, index) => ({
+    sequence: String(index + 1),
+    southwestName: getRowField(row, "southwestName") || getRowField(row, "productName") || "未命名品种",
+    productName: getRowField(row, "productName"),
+    companyName: getRowField(row, "companyName"),
+    approvalDate: formatApprovalDate(getRowField(row, "approvalDate")),
+    indication: getRowField(row, "indication"),
+    registrationCategory: getRowField(row, "registrationCategory"),
+    target: getRowField(row, "target"),
+    purchase: getRowField(row, "purchase")
+  }));
 }
 
 function getRowField(row, field) {
