@@ -1,5 +1,7 @@
 import { tableSectionOrder } from "../config/dashboardConfig.js";
 
+const HIDDEN_TABLE_SECTION_KEYS = new Set(["weeklyNewArchived", "partnerCommunication"]);
+
 const POOL_SERIES = [
   { key: "newDrugCount", label: "上市新药数", color: "#0f766e" },
   { key: "landedSichuanCount", label: "落地四川数", color: "#245b89" },
@@ -45,7 +47,7 @@ export function renderTableCards(container, sections = [], onOpen) {
   container.replaceChildren();
 
   sortTableSectionsByDisplayOrder(sections)
-    .filter((section) => !isPartnerCommunication(section))
+    .filter(shouldShowTableSection)
     .forEach((section) => {
       if (isNeedLeaderSupport(section)) {
         container.append(createNeedLeaderSupportCard(section, onOpen));
@@ -106,6 +108,10 @@ export function renderTableCards(container, sections = [], onOpen) {
 
 export function sortTableSectionsByDisplayOrder(sections = []) {
   return [...sections].sort((left, right) => getTableSectionOrderIndex(left.key) - getTableSectionOrderIndex(right.key));
+}
+
+export function shouldShowTableSection(section) {
+  return !HIDDEN_TABLE_SECTION_KEYS.has(section.key);
 }
 
 function getTableSectionOrderIndex(key) {
@@ -1132,10 +1138,6 @@ function isIntroductionProgress(section) {
 
 function isInnovativeDrugPool(section) {
   return section.key === "innovativeDrugPool";
-}
-
-function isPartnerCommunication(section) {
-  return section.key === "partnerCommunication";
 }
 
 function isRecentArchivedProduct(row) {

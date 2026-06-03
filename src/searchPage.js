@@ -1,7 +1,7 @@
 import { createIcons, icons } from "lucide";
 import { demoWorkbookState as demoDashboardData } from "./config/demoWorkbookState.js";
 import { isValidHttpUrl } from "./parser/normalizer.js";
-import { getDisplayValue, sortTableSectionsByDisplayOrder } from "./render/tableRenderer.js";
+import { getDisplayValue, shouldShowTableSection, sortTableSectionsByDisplayOrder } from "./render/tableRenderer.js";
 import { loadDashboardState } from "./state/storage.js";
 import "./styles/base.css";
 import "./styles/dashboard.css";
@@ -238,7 +238,7 @@ function getNewsMatches(keyword) {
 
 function getTableMatches(keyword) {
   return sortTableSectionsByDisplayOrder(dashboardState.tableSections)
-    .filter((section) => section.key !== "partnerCommunication")
+    .filter(shouldShowTableSection)
     .map((section) => ({
       section,
       rows: section.rows.filter((row) => textIncludes(Object.values(row.values || {}).join(" "), keyword))

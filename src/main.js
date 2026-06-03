@@ -17,6 +17,7 @@ let dashboardState = demoDashboardData;
 let notice = null;
 
 initializeDashboard();
+window.addEventListener("afterprint", () => document.body.classList.remove("is-printing-pdf"));
 
 async function initializeDashboard() {
   dashboardState = (await loadDashboardState()) || demoDashboardData;
@@ -49,6 +50,7 @@ function renderDashboard() {
           </form>
           <div class="topbar-actions">
             <span class="last-update"><i data-lucide="clock-3"></i><span>${formatDateTime(meta.updatedAt)}</span></span>
+            <button class="button button-ghost" id="pdfExportButton" type="button"><i data-lucide="file-down"></i><span>PDF 导出</span></button>
             <label class="button button-primary" for="excelInput"><i data-lucide="upload"></i><span>上传 Excel</span></label>
             <input id="excelInput" type="file" accept=".xlsx,.xls" hidden />
           </div>
@@ -93,11 +95,24 @@ function renderDashboard() {
           <div id="tableCards" class="table-card-grid"></div>
         </section>
       </main>
+
+      <div class="analysis-launcher" aria-label="数据分析功能">
+        <button class="analysis-orb" type="button" aria-expanded="false" aria-controls="analysisMenu" title="数据分析">
+          <i data-lucide="sparkles"></i>
+        </button>
+        <div class="analysis-menu" id="analysisMenu">
+          <a class="analysis-menu-item" href="/analysis.html"><i data-lucide="factory"></i><span>厂牌分析</span></a>
+          <button class="analysis-menu-item" type="button" data-analysis-pending="品种分析"><i data-lucide="pill"></i><span>品种分析</span></button>
+          <button class="analysis-menu-item" type="button" data-analysis-pending="靶点分析"><i data-lucide="target"></i><span>靶点分析</span></button>
+        </div>
+      </div>
     </div>
   `;
 
   bindUpload();
   bindGuideNav();
+  bindPdfExport();
+  bindAnalysisLauncher();
   renderNotice();
   renderNewsSections(document.querySelector("#newsSections"), dashboardState.newsSections, dashboardState.tableSections);
   renderTableCards(document.querySelector("#tableCards"), dashboardState.tableSections, openTableSection);
@@ -136,6 +151,35 @@ function bindGuideNav() {
     button.addEventListener("click", () => {
       const name = button.dataset.guidePending;
       notice = { type: "warning", text: `${name}板块尚待开发，当前首页先展示创新药相关信息。` };
+      renderNotice();
+      document.querySelector("#noticeHost")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
+function bindPdfExport() {
+  document.querySelector("#pdfExportButton")?.addEventListener("click", () => {
+    document.body.classList.add("is-printing-pdf");
+    window.print();
+  });
+}
+
+function bindAnalysisLauncher() {
+  const launcher = document.querySelector(".analysis-launcher");
+  const orb = launcher?.querySelector(".analysis-orb");
+  if (!launcher || !orb) return;
+
+  orb.addEventListener("click", () => {
+    const isOpen = launcher.classList.toggle("is-open");
+    orb.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  launcher.querySelectorAll("[data-analysis-pending]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const name = button.dataset.analysisPending;
+      notice = { type: "warning", text: `${name}功能尚待补充，当前先开放厂牌分析。` };
+      launcher.classList.remove("is-open");
+      orb.setAttribute("aria-expanded", "false");
       renderNotice();
       document.querySelector("#noticeHost")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });

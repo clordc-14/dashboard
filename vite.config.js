@@ -9,7 +9,8 @@ export default {
       input: {
         index: resolve(rootDir, "index.html"),
         table: resolve(rootDir, "table.html"),
-        search: resolve(rootDir, "search.html")
+        search: resolve(rootDir, "search.html"),
+        analysis: resolve(rootDir, "analysis.html")
       }
     }
   }

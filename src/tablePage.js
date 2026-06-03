@@ -1,7 +1,7 @@
 import { createIcons, icons } from "lucide";
 import { demoWorkbookState as demoDashboardData } from "./config/demoWorkbookState.js";
 import { loadDashboardState } from "./state/storage.js";
-import { getDisplayValue, sortTableSectionsByDisplayOrder } from "./render/tableRenderer.js";
+import { getDisplayValue, shouldShowTableSection, sortTableSectionsByDisplayOrder } from "./render/tableRenderer.js";
 import "./styles/base.css";
 import "./styles/dashboard.css";
 
@@ -316,7 +316,7 @@ function pickInitialSectionKey(key) {
 }
 
 function getVisibleTableSections() {
-  return sortTableSectionsByDisplayOrder(dashboardState.tableSections).filter((section) => section.key !== "partnerCommunication");
+  return sortTableSectionsByDisplayOrder(dashboardState.tableSections).filter(shouldShowTableSection);
 }
 
 function appendHighlightedText(node, value, query) {
