@@ -1,6 +1,6 @@
 import { tableSectionOrder } from "../config/dashboardConfig.js";
 
-const HIDDEN_TABLE_SECTION_KEYS = new Set(["weeklyNewArchived", "partnerCommunication"]);
+const HIDDEN_TABLE_SECTION_KEYS = new Set(["weeklyNewArchived", "partnerCommunication", "drugScore"]);
 
 const POOL_SERIES = [
   { key: "newDrugCount", label: "上市新药数", color: "#0f766e" },

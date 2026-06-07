@@ -1,5 +1,6 @@
 export const tableSectionOrder = [
   "innovativeDrugPool",
+  "drugScore",
   "weeklyNewArchived",
   "introductionProgress",
   "needLeaderSupport",
@@ -60,6 +61,12 @@ export const dashboardConfig = {
       matchTitle: "上市创新药品种池",
       aliases: ["创新药品种池", "创新药品种", "重点关注品种", "其他表格板块 2", "其他表格板块2"],
       autoFillFromUnmatched: true
+    },
+    {
+      key: "drugScore",
+      title: "新药评分表",
+      matchTitle: "新药评分表",
+      aliases: ["新药评分表", "药品评分表", "品种评分表", "新药评分", "品种评分"]
     },
     {
       key: "partnerCommunication",

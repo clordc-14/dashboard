@@ -1747,6 +1747,220 @@ a.search-result-title:hover {
   text-align: right;
 }
 
+.product-analysis-results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.78fr);
+  gap: 16px;
+}
+
+.analysis-data-card {
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.product-ranking-card {
+  grid-column: 1 / -1;
+}
+
+.peer-ranking-card {
+  display: grid;
+  gap: 12px;
+}
+
+.analysis-card-note {
+  max-width: 420px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.product-choice-list {
+  max-height: 376px;
+}
+
+.product-choice {
+  grid-template-columns: 18px minmax(140px, 1fr) minmax(130px, auto);
+}
+
+.product-ranking-table table {
+  min-width: 1180px;
+}
+
+.peer-ranking-card .product-ranking-table table {
+  min-width: 1060px;
+}
+
+.product-ranking-table th,
+.product-ranking-table td {
+  vertical-align: middle;
+}
+
+.product-ranking-table th:first-child,
+.product-ranking-table td:first-child {
+  width: 68px;
+  text-align: center;
+}
+
+.product-ranking-table th:nth-child(2),
+.product-ranking-table td:nth-child(2) {
+  width: 190px;
+}
+
+.product-ranking-table th:nth-child(5),
+.product-ranking-table td:nth-child(5) {
+  width: 310px;
+}
+
+.product-ranking-table th:nth-child(6),
+.product-ranking-table td:nth-child(6) {
+  width: 130px;
+}
+
+.ranking-product-name {
+  color: var(--teal-dark);
+  line-height: 1.45;
+}
+
+.amount-cell {
+  color: #24455a;
+  font-weight: 900;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rank-badge {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: #ffffff;
+  background: var(--teal-dark);
+  border-radius: 8px;
+  font-weight: 900;
+}
+
+.rank-badge-muted {
+  color: var(--muted);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+}
+
+.is-selected-row td {
+  background: var(--blue-soft);
+}
+
+.product-radar-card {
+  min-height: 520px;
+}
+
+.product-radar-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(260px, 0.82fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.product-radar-layout svg {
+  display: block;
+  max-width: 100%;
+}
+
+.radar-grid-polygon {
+  fill: none;
+  stroke: #d7e2e7;
+  stroke-width: 1;
+}
+
+.radar-axis-line {
+  stroke: #c5d2d9;
+  stroke-width: 1;
+}
+
+.radar-axis-label {
+  fill: #445960;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.radar-series-polygon {
+  fill: color-mix(in srgb, var(--series-color) 18%, transparent);
+  stroke: var(--series-color);
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+.radar-series-point {
+  fill: #ffffff;
+  stroke: var(--series-color);
+  stroke-width: 2.2;
+}
+
+.radar-summary {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.radar-legend {
+  justify-content: flex-start;
+}
+
+.radar-notes {
+  display: grid;
+  gap: 10px;
+}
+
+.radar-notes p {
+  margin: 0;
+  padding: 11px 12px;
+  color: #26383d;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--amber);
+  border-radius: 8px;
+  font-weight: 800;
+  line-height: 1.65;
+}
+
+.peer-ranking-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.peer-ranking-panel {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.peer-ranking-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.peer-ranking-heading strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.peer-ranking-heading span {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
 @media (max-width: 980px) {
   .app-shell,
   .detail-shell,
@@ -1779,7 +1993,9 @@ a.search-result-title:hover {
   .detail-layout,
   .introduction-progress-body,
   .analysis-filter-grid,
-  .brand-chart-grid {
+  .brand-chart-grid,
+  .product-analysis-results,
+  .product-radar-layout {
     grid-template-columns: 1fr;
   }
 
@@ -1925,6 +2141,10 @@ a.search-result-title:hover {
     gap: 6px;
   }
 
+  .product-choice {
+    grid-template-columns: 18px minmax(0, 1fr);
+  }
+
   .brand-choice input {
     grid-row: 1 / span 2;
     margin-top: 2px;
@@ -1937,6 +2157,19 @@ a.search-result-title:hover {
   .brand-choice small,
   .brand-choice-name {
     white-space: normal;
+  }
+
+  .analysis-card-note {
+    max-width: none;
+    text-align: left;
+  }
+
+  .product-radar-card {
+    min-height: 0;
+  }
+
+  .radar-axis-label {
+    font-size: 11px;
   }
 
   .product-bar-row {
@@ -1994,7 +2227,8 @@ a.search-result-title:hover {
   .analysis-title-band,
   .analysis-filter-card,
   .brand-overview-card,
-  .analysis-chart-card {
+  .analysis-chart-card,
+  .analysis-data-card {
     box-shadow: none !important;
   }
 

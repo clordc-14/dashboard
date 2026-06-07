@@ -102,7 +102,7 @@ function renderDashboard() {
         </button>
         <div class="analysis-menu" id="analysisMenu">
           <a class="analysis-menu-item" href="/analysis.html"><i data-lucide="factory"></i><span>厂牌分析</span></a>
-          <button class="analysis-menu-item" type="button" data-analysis-pending="品种分析"><i data-lucide="pill"></i><span>品种分析</span></button>
+          <a class="analysis-menu-item" href="/product-analysis.html"><i data-lucide="pill"></i><span>品种分析</span></a>
           <button class="analysis-menu-item" type="button" data-analysis-pending="靶点分析"><i data-lucide="target"></i><span>靶点分析</span></button>
         </div>
       </div>
