@@ -11,7 +11,8 @@ export default {
         table: resolve(rootDir, "table.html"),
         search: resolve(rootDir, "search.html"),
         analysis: resolve(rootDir, "analysis.html"),
-        productAnalysis: resolve(rootDir, "product-analysis.html")
+        productAnalysis: resolve(rootDir, "product-analysis.html"),
+        targetAnalysis: resolve(rootDir, "target-analysis.html")
       }
     }
   }

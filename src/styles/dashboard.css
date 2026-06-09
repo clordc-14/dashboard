@@ -1961,6 +1961,136 @@ a.search-result-title:hover {
   font-weight: 900;
 }
 
+.target-analysis-shell {
+  max-width: 1400px;
+}
+
+.target-title-band {
+  border-left-color: var(--blue);
+}
+
+.target-filter-grid {
+  grid-template-columns: minmax(300px, 0.8fr) minmax(380px, 1.2fr);
+}
+
+.target-analysis-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.target-chart-card {
+  display: grid;
+  min-height: 430px;
+  align-content: start;
+  gap: 12px;
+}
+
+.target-chart-card .analysis-chart-top {
+  margin-bottom: 0;
+}
+
+.target-chart-card .analysis-chart-top > .lucide {
+  width: 22px;
+  height: 22px;
+  color: var(--blue);
+}
+
+.target-chart-note {
+  min-height: 34px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.target-legend {
+  justify-content: flex-start;
+}
+
+.target-chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.target-chart-scroll svg {
+  display: block;
+  max-width: none;
+}
+
+.target-grid-line {
+  stroke: #d8e2ea;
+  stroke-dasharray: 4 4;
+}
+
+.target-axis-line {
+  stroke: #9bb0ba;
+  stroke-width: 1.5;
+}
+
+.target-axis-label,
+.target-axis-title,
+.target-point-label {
+  fill: #52666d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.target-axis-title {
+  fill: #40545a;
+  font-size: 12px;
+}
+
+.target-series-line {
+  fill: none;
+  stroke: var(--series-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.5;
+}
+
+.target-series-point {
+  fill: #ffffff;
+  stroke: var(--series-color);
+  stroke-width: 3;
+}
+
+.target-point-label {
+  fill: var(--series-color);
+  font-weight: 900;
+}
+
+.target-ranking-card {
+  grid-column: 1 / -1;
+}
+
+.target-choice-list {
+  max-height: 376px;
+}
+
+.target-choice {
+  grid-template-columns: 18px minmax(150px, 1fr) minmax(144px, auto);
+}
+
+.target-choice .brand-choice-name {
+  white-space: normal;
+}
+
+.target-ranking-table table {
+  min-width: 1260px;
+}
+
+.target-ranking-table th:nth-child(2),
+.target-ranking-table td:nth-child(2) {
+  width: 210px;
+}
+
+.target-ranking-table th:nth-child(5),
+.target-ranking-table td:nth-child(5) {
+  width: 330px;
+}
+
 @media (max-width: 980px) {
   .app-shell,
   .detail-shell,
@@ -1995,7 +2125,8 @@ a.search-result-title:hover {
   .analysis-filter-grid,
   .brand-chart-grid,
   .product-analysis-results,
-  .product-radar-layout {
+  .product-radar-layout,
+  .target-analysis-results {
     grid-template-columns: 1fr;
   }
 
@@ -2142,6 +2273,10 @@ a.search-result-title:hover {
   }
 
   .product-choice {
+    grid-template-columns: 18px minmax(0, 1fr);
+  }
+
+  .target-choice {
     grid-template-columns: 18px minmax(0, 1fr);
   }
 

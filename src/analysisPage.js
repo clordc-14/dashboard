@@ -11,6 +11,7 @@ let dashboardState = demoDashboardData;
 let selectedTimeKeys = new Set();
 let selectedBrands = new Set();
 let brandSearch = "";
+let isBrandSearchComposing = false;
 let currentSalesOptions = [];
 
 initializeAnalysisPage();
@@ -135,11 +136,22 @@ function renderBrandFilter(poolSection) {
   search.type = "search";
   search.placeholder = "输入厂牌检索";
   search.value = brandSearch;
-  search.addEventListener("input", (event) => {
+  search.addEventListener("compositionstart", () => {
+    isBrandSearchComposing = true;
+  });
+  search.addEventListener("compositionend", (event) => {
+    isBrandSearchComposing = false;
     brandSearch = event.target.value;
     renderBrandFilter(poolSection);
     createIcons({ icons });
-    document.querySelector("#brandFilter input[type='search']")?.focus();
+    focusSearchInput("#brandFilter");
+  });
+  search.addEventListener("input", (event) => {
+    brandSearch = event.target.value;
+    if (isBrandSearchComposing) return;
+    renderBrandFilter(poolSection);
+    createIcons({ icons });
+    focusSearchInput("#brandFilter");
   });
   searchWrap.append(search);
 
@@ -730,6 +742,13 @@ function pointsToPath(points) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function focusSearchInput(filterSelector) {
+  const nextSearch = document.querySelector(`${filterSelector} input[type='search']`);
+  if (!nextSearch) return;
+  nextSearch.focus();
+  nextSearch.setSelectionRange(nextSearch.value.length, nextSearch.value.length);
 }
 
 function escapeHtml(value) {

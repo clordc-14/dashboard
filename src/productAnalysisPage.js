@@ -34,6 +34,7 @@ let dashboardState = demoDashboardData;
 let selectedTimeKeys = new Set();
 let selectedProducts = new Set();
 let productSearch = "";
+let isProductSearchComposing = false;
 let currentSalesOptions = [];
 
 initializeProductAnalysisPage();
@@ -159,11 +160,22 @@ function renderProductFilter(poolSection, scoreSection) {
   search.type = "search";
   search.placeholder = "输入通用名、商品名、CMS品名或厂牌检索";
   search.value = productSearch;
-  search.addEventListener("input", (event) => {
+  search.addEventListener("compositionstart", () => {
+    isProductSearchComposing = true;
+  });
+  search.addEventListener("compositionend", (event) => {
+    isProductSearchComposing = false;
     productSearch = event.target.value;
     renderProductFilter(poolSection, scoreSection);
     createIcons({ icons });
-    document.querySelector("#productFilter input[type='search']")?.focus();
+    focusSearchInput("#productFilter");
+  });
+  search.addEventListener("input", (event) => {
+    productSearch = event.target.value;
+    if (isProductSearchComposing) return;
+    renderProductFilter(poolSection, scoreSection);
+    createIcons({ icons });
+    focusSearchInput("#productFilter");
   });
   searchWrap.append(search);
 
@@ -948,6 +960,13 @@ function createSvgElement(tagName, attributes = {}) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function focusSearchInput(filterSelector) {
+  const nextSearch = document.querySelector(`${filterSelector} input[type='search']`);
+  if (!nextSearch) return;
+  nextSearch.focus();
+  nextSearch.setSelectionRange(nextSearch.value.length, nextSearch.value.length);
 }
 
 function escapeHtml(value) {
