@@ -17,6 +17,7 @@ let dashboardState = demoDashboardData;
 let notice = null;
 
 initializeDashboard();
+window.addEventListener("beforeprint", () => document.body.classList.add("is-printing-pdf"));
 window.addEventListener("afterprint", () => document.body.classList.remove("is-printing-pdf"));
 
 async function initializeDashboard() {
@@ -160,7 +161,7 @@ function bindGuideNav() {
 function bindPdfExport() {
   document.querySelector("#pdfExportButton")?.addEventListener("click", () => {
     document.body.classList.add("is-printing-pdf");
-    window.print();
+    requestAnimationFrame(() => window.print());
   });
 }
 

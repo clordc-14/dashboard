@@ -2318,13 +2318,26 @@ a.search-result-title:hover {
 
 @media print {
   @page {
-    margin: 13mm;
+    margin: 6mm;
     size: A4 portrait;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 
   html,
   body {
     background: #ffffff;
+    color: #111111;
+    font-family: SimHei, "Microsoft YaHei", Arial, sans-serif;
+    font-size: 7.3pt;
+    line-height: 1.18;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .app-shell {
@@ -2333,26 +2346,551 @@ a.search-result-title:hover {
   }
 
   .topbar {
-    align-items: flex-start;
-    margin-bottom: 18px;
+    align-items: center;
+    min-height: 0;
+    margin-bottom: 2.4mm;
+    padding-bottom: 2mm;
+    border-bottom: 1.2pt solid #173f73;
   }
 
   .topbar-tools,
   .guide-nav,
   .analysis-launcher,
   .section-heading .button,
+  .panel-actions,
+  .pool-filter-wrap,
   .icon-button,
   #noticeHost {
     display: none !important;
   }
 
+  .brand {
+    gap: 3mm;
+  }
+
   .brand-logo {
-    width: 74px;
-    height: 58px;
+    width: 17mm;
+    height: 13mm;
   }
 
   .brand h1 {
-    font-size: 24px;
+    color: #111111;
+    font-size: 13.5pt;
+    line-height: 1.08;
+  }
+
+  .brand p {
+    margin-top: 0.5mm;
+    color: #173f73;
+    font-size: 7.6pt;
+    font-weight: 900;
+  }
+
+  #innovation-content {
+    display: grid;
+    gap: 2.2mm;
+  }
+
+  .status-band {
+    min-height: 0;
+    padding: 1.5mm 2.4mm;
+    background: #ffffff;
+    border: 0.8pt solid #9bb6bc;
+    border-left: 3mm solid #14826d;
+    border-radius: 2mm;
+  }
+
+  .business-overview {
+    color: #111111;
+    font-size: 8.1pt;
+    line-height: 1.22;
+  }
+
+  .business-overview strong {
+    color: #173f73;
+  }
+
+  .content-band {
+    margin-top: 0;
+  }
+
+  .section-heading,
+  .panel-heading,
+  .detail-heading {
+    align-items: flex-end;
+    gap: 1.5mm;
+    margin-bottom: 1.2mm;
+    padding-bottom: 0.8mm;
+    border-bottom: 0.7pt solid #b8cace;
+  }
+
+  .section-heading h2,
+  .panel-heading h2 {
+    color: #111111;
+    font-size: 8.5pt;
+    line-height: 1.18;
+  }
+
+  .eyebrow {
+    display: none;
+  }
+
+  .source-note {
+    margin-top: 0.7mm;
+    color: #475a5f;
+    font-size: 6.1pt;
+  }
+
+  .count-pill,
+  .insight-table-heading span {
+    min-height: 0;
+    padding: 0.3mm 1.2mm;
+    color: #0f6858;
+    background: #edf8f4;
+    border: 0.5pt solid #b8d8cf;
+    border-radius: 20mm;
+    font-size: 6.1pt;
+  }
+
+  .news-grid,
+  .table-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.6mm;
+  }
+
+  .news-column,
+  .table-card {
+    min-width: 0;
+    padding: 1.4mm;
+    background: #ffffff;
+    border: 0.7pt solid #afc1c6;
+    border-radius: 2mm;
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .table-card.is-innovative-pool,
+  .table-card.is-archived-products {
+    grid-column: 1 / -1;
+  }
+
+  .table-card.is-need-leader-support,
+  .table-card.is-introduction-progress {
+    grid-column: auto;
+  }
+
+  .weekly-news-stack,
+  .leader-support-body,
+  .innovative-pool-body,
+  .intro-progress-left,
+  .intro-progress-right {
+    gap: 1mm;
+  }
+
+  .news-subsection + .news-subsection {
+    padding-top: 1.2mm;
+    border-top: 0.6pt solid #c8d7da;
+  }
+
+  .news-subsection-heading {
+    margin-bottom: 1mm;
+  }
+
+  .news-subsection-heading h3,
+  .insight-table-heading h3,
+  .progress-chart-shell h3,
+  .pool-chart-top h3 {
+    color: #173f73;
+    font-size: 7.4pt;
+    line-height: 1.18;
+  }
+
+  .news-item {
+    padding: 0.8mm 0;
+    border-top: 0.55pt solid #d1dde0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .focus-news-item {
+    grid-template-columns: 7mm minmax(0, 1fr) auto;
+    gap: 1.3mm 2mm;
+  }
+
+  .southwest-news-item,
+  .drug-review-top {
+    grid-template-columns: 7mm minmax(0, 1fr);
+    gap: 2mm;
+  }
+
+  .news-index,
+  .preview-index,
+  .rank-badge {
+    width: 4.2mm;
+    height: 4.2mm;
+    color: #0f6858;
+    background: #edf8f4;
+    border: 0.5pt solid #b8d8cf;
+    border-radius: 1.2mm;
+    font-size: 5.9pt;
+  }
+
+  .news-title,
+  .drug-name,
+  .product-detail-link,
+  a {
+    color: #064f45;
+  }
+
+  .news-title,
+  .drug-name {
+    font-size: 7.1pt;
+    line-height: 1.16;
+  }
+
+  .drug-name {
+    margin-bottom: 1mm;
+  }
+
+  .news-summary,
+  .drug-indication,
+  .southwest-indication {
+    color: #111111;
+    font-size: 6.3pt;
+    line-height: 1.16;
+  }
+
+  .drug-tags {
+    gap: 1mm;
+  }
+
+  .drug-tags span,
+  .news-date-chip {
+    min-height: 0;
+    padding: 0.25mm 0.8mm;
+    color: #111111;
+    background: #ffffff;
+    border: 0.5pt solid #b9c9cd;
+    border-radius: 1.2mm;
+    font-size: 5.7pt;
+  }
+
+  .news-date-chip .lucide {
+    display: none;
+  }
+
+  .drug-indication,
+  .drug-progress-row {
+    margin-left: 9mm;
+  }
+
+  .drug-progress-row {
+    display: block;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .field-label,
+  .update-chip span {
+    display: none;
+  }
+
+  .update-chip {
+    display: none;
+  }
+
+  .progress-note strong,
+  .update-chip time {
+    color: #111111;
+    font-size: 6pt;
+    line-height: 1.16;
+  }
+
+  .pool-metrics,
+  .leader-metrics,
+  .mini-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1mm;
+    margin-bottom: 0.9mm;
+  }
+
+  .archived-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pool-metric,
+  .leader-metric,
+  .intro-record-metric,
+  .mini-metric {
+    min-height: 0;
+    padding: 1mm 1.4mm;
+    background: #ffffff;
+    border: 0.7pt solid #afc1c6;
+    border-left: 1.2mm solid #14826d;
+    border-radius: 1.5mm;
+  }
+
+  .pool-metric span,
+  .leader-metric span,
+  .intro-record-metric span,
+  .mini-metric span {
+    color: #475a5f;
+    font-size: 5.9pt;
+    line-height: 1.18;
+  }
+
+  .pool-metric strong,
+  .leader-metric strong,
+  .intro-record-metric strong,
+  .mini-metric strong {
+    margin-top: 1mm;
+    color: #0f6858;
+    font-size: 13pt;
+  }
+
+  .pool-metric-landed,
+  .leader-metric-landed {
+    border-left-color: #173f73;
+  }
+
+  .pool-metric-archived,
+  .leader-metric-focus {
+    border-left-color: #b7791f;
+  }
+
+  .pool-chart-shell,
+  .progress-chart-shell {
+    padding: 1.2mm;
+    background: #ffffff;
+    border: 0.7pt solid #afc1c6;
+    border-radius: 1.5mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .pool-chart-top {
+    margin-bottom: 1mm;
+  }
+
+  .pool-legend {
+    gap: 1.2mm 3mm;
+  }
+
+  .pool-legend span {
+    color: #111111;
+    font-size: 6pt;
+  }
+
+  .pool-chart-scroll,
+  .analysis-svg-scroll,
+  .target-chart-scroll {
+    overflow: visible;
+  }
+
+  .pool-chart-scroll svg {
+    width: 100%;
+    height: 26mm;
+  }
+
+  .pool-grid-line,
+  .target-grid-line,
+  .analysis-grid-line {
+    stroke: #d0d9dc;
+  }
+
+  .pool-axis-line,
+  .target-axis-line,
+  .analysis-axis-line {
+    stroke: #8a9ba0;
+  }
+
+  .pool-axis-label,
+  .pool-point-label {
+    font-size: 9px;
+  }
+
+  .introduction-progress-body {
+    grid-template-columns: 1fr;
+    gap: 1.5mm;
+  }
+
+  .progress-bars {
+    gap: 0.9mm;
+  }
+
+  .progress-bar-row {
+    grid-template-columns: 24mm minmax(0, 1fr) 6mm;
+    gap: 1mm;
+    min-height: 3.4mm;
+  }
+
+  .progress-bar-label,
+  .progress-bar-row strong {
+    color: #111111;
+    font-size: 5.8pt;
+  }
+
+  .progress-bar-track {
+    height: 1.5mm;
+    background: #ffffff;
+    border: 0.5pt solid #b8cace;
+  }
+
+  .insight-table-panel {
+    gap: 1mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .insight-table-heading {
+    padding-top: 0;
+  }
+
+  .table-wrap {
+    overflow: visible;
+    border: 0.7pt solid #7d8d92;
+    border-radius: 1.2mm;
+  }
+
+  table,
+  .preview-table table,
+  .archived-preview-table table,
+  .insight-table-wrap table,
+  .preview-table.insight-table-wrap table,
+  .support-featured-table .insight-table-wrap table,
+  .support-other-table .insight-table-wrap table,
+  .progress-highlight-table .insight-table-wrap table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  th,
+  td {
+    padding: 0.55mm 0.75mm;
+    color: #111111;
+    border-right: 0.5pt solid #b7c4c8;
+    border-bottom: 0.5pt solid #b7c4c8;
+    font-size: 5.6pt;
+    line-height: 1.12;
+    vertical-align: middle;
+  }
+
+  th {
+    color: #111111;
+    background: #f4f8f8;
+    border-bottom-color: #87999f;
+    font-size: 5.6pt;
+    font-weight: 900;
+  }
+
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  tbody tr:hover {
+    background: transparent;
+  }
+
+  .rating-cell {
+    color: #9a5b06;
+    font-size: 5.9pt;
+  }
+
+  .archived-preview-table th:nth-child(1),
+  .archived-preview-table td:nth-child(1),
+  .support-featured-table th:nth-child(1),
+  .support-featured-table td:nth-child(1),
+  .support-other-table th:nth-child(1),
+  .support-other-table td:nth-child(1),
+  .progress-highlight-table th:nth-child(1),
+  .progress-highlight-table td:nth-child(1) {
+    width: 6mm;
+  }
+
+  .archived-preview-table th:nth-child(2),
+  .archived-preview-table td:nth-child(2),
+  .support-featured-table th:nth-child(2),
+  .support-featured-table td:nth-child(2),
+  .support-other-table th:nth-child(2),
+  .support-other-table td:nth-child(2),
+  .progress-highlight-table th:nth-child(2),
+  .progress-highlight-table td:nth-child(2) {
+    width: 26mm;
+  }
+
+  .archived-preview-table th:nth-child(2),
+  .archived-preview-table td:nth-child(2) {
+    width: 30mm;
+  }
+
+  .archived-preview-table th:nth-child(3),
+  .archived-preview-table td:nth-child(3),
+  .archived-preview-table th:nth-child(4),
+  .archived-preview-table td:nth-child(4),
+  .archived-preview-table th:nth-child(7),
+  .archived-preview-table td:nth-child(7) {
+    width: 17mm;
+  }
+
+  .archived-preview-table th:nth-child(6),
+  .archived-preview-table td:nth-child(6) {
+    width: 28mm;
+  }
+
+  .archived-preview-table th:nth-child(8),
+  .archived-preview-table td:nth-child(8) {
+    width: 18mm;
+  }
+
+  .archived-preview-table th:nth-child(5),
+  .archived-preview-table td:nth-child(5),
+  .support-featured-table th:nth-child(6),
+  .support-featured-table td:nth-child(6),
+  .support-other-table th:nth-child(6),
+  .support-other-table td:nth-child(6) {
+    width: auto;
+  }
+
+  .support-featured-table th:nth-child(3),
+  .support-featured-table td:nth-child(3),
+  .support-featured-table th:nth-child(7),
+  .support-featured-table td:nth-child(7),
+  .support-featured-table th:nth-child(8),
+  .support-featured-table td:nth-child(8),
+  .support-other-table th:nth-child(3),
+  .support-other-table td:nth-child(3),
+  .support-other-table th:nth-child(7),
+  .support-other-table td:nth-child(7),
+  .support-other-table th:nth-child(8),
+  .support-other-table td:nth-child(8),
+  .progress-highlight-table th:nth-child(3),
+  .progress-highlight-table td:nth-child(3),
+  .progress-highlight-table th:nth-child(8),
+  .progress-highlight-table td:nth-child(8),
+  .archived-preview-table th:nth-child(5),
+  .archived-preview-table td:nth-child(5) {
+    display: none;
+  }
+
+  .empty-state {
+    min-height: 8mm;
+    background: #ffffff;
+    border: 0.6pt dashed #a9b8bd;
+    border-radius: 1.5mm;
+  }
+
+  .weekly-highlights .empty-state,
+  .empty-state-large {
+    min-height: 8mm;
+  }
+
+  .news-subsection:has(.empty-state),
+  .insight-table-panel:has(.empty-state) {
+    display: none;
   }
 
   .status-band,
@@ -2367,15 +2905,23 @@ a.search-result-title:hover {
     box-shadow: none !important;
   }
 
-  .content-band,
-  .table-card,
-  .news-card,
-  .brand-analysis-panel {
+  .brand,
+  .section-heading,
+  .panel-heading,
+  .news-item,
+  .pool-chart-shell,
+  .progress-chart-shell,
+  .insight-table-panel {
     break-inside: avoid;
     page-break-inside: avoid;
   }
+}
 
-  .table-wrap {
-    overflow: visible;
+@media screen {
+  body.is-printing-pdf .topbar-tools,
+  body.is-printing-pdf .guide-nav,
+  body.is-printing-pdf .analysis-launcher,
+  body.is-printing-pdf #noticeHost {
+    display: none !important;
   }
 }
