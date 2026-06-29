@@ -103,14 +103,16 @@ export function normalizeTableSection(match, sectionConfig) {
   }
 
   const headerRow = rows[headerIndex];
-  const columns = ensureUniqueColumnKeys(headerRow
+  const sourceColumns = ensureUniqueColumnKeys(headerRow
     .map((cell, columnIndex) => createColumn(cellText(cell), columnIndex))
     .filter((column) => column.label));
 
   const dataRows = rows.slice(headerIndex + 1);
-  const normalizedRows = dataRows
-    .map((row, rowIndex) => normalizeTableRow(row, columns, sectionConfig.key, rowIndex))
+  const sourceRows = dataRows
+    .map((row, rowIndex) => normalizeTableRow(row, sourceColumns, sectionConfig.key, rowIndex))
     .filter((row) => hasAnyValue(row.values));
+  const filteredRows = applyRowFilters(sourceRows, sectionConfig.rowFilters);
+  const { columns, rows: normalizedRows } = applyDisplayColumns(sourceColumns, filteredRows, sectionConfig.displayColumns);
 
   return {
     key: sectionConfig.key,
@@ -247,6 +249,64 @@ function normalizeTableRow(row, columns, sectionKey, rowIndex) {
   };
 }
 
+function applyRowFilters(rows, filters = []) {
+  if (!filters.length) return rows;
+
+  return rows.filter((row) =>
+    filters.every((filter) => {
+      const hasField = Object.prototype.hasOwnProperty.call(row.fields, filter.field);
+      if (!hasField) return true;
+
+      const value = row.fields[filter.field];
+      if (filter.operator === "affirmative") return isAffirmative(value);
+      if (filter.operator === "negative") return isNegative(value);
+      return String(value ?? "").trim() === String(filter.value ?? "").trim();
+    })
+  );
+}
+
+function applyDisplayColumns(sourceColumns, rows, displayColumns = []) {
+  if (!displayColumns.length) {
+    return { columns: sourceColumns, rows };
+  }
+
+  const columns = displayColumns.map((column, index) => ({
+    key: column.key || createUniqueKey(column.label, index),
+    label: column.label || column.key || `列${index + 1}`,
+    field: column.field || identifyField(column.label || column.key)
+  }));
+
+  const projectedRows = rows.map((row) => {
+    const values = {};
+    const fields = { ...row.fields };
+    const links = {};
+
+    displayColumns.forEach((column, index) => {
+      const outputColumn = columns[index];
+      const sourceKey = column.sourceKey || findSourceKey(sourceColumns, column.sourceField || column.field || outputColumn.key);
+      const value = sourceKey ? row.values[sourceKey] ?? "" : "";
+
+      values[outputColumn.key] = value;
+      if (outputColumn.field) fields[outputColumn.field] = value;
+      if (sourceKey && row.links?.[sourceKey]) links[outputColumn.key] = row.links[sourceKey];
+    });
+
+    return {
+      ...row,
+      values,
+      fields,
+      links
+    };
+  });
+
+  return { columns, rows: projectedRows };
+}
+
+function findSourceKey(sourceColumns, fieldOrKey) {
+  if (!fieldOrKey) return "";
+  return sourceColumns.find((column) => column.field === fieldOrKey || column.key === fieldOrKey)?.key || "";
+}
+
 function findHeaderRow(rows, type) {
   let bestIndex = -1;
   let bestScore = -1;
@@ -342,6 +402,25 @@ function firstNonEmpty(row) {
 
 function hasAnyValue(values) {
   return Object.values(values).some(Boolean);
+}
+
+function isAffirmative(value) {
+  const text = String(value ?? "").trim().toLowerCase();
+  return (
+    ["是", "yes", "y", "true", "1", "已落地", "已建档", "√"].includes(text) ||
+    text.startsWith("是，") ||
+    text.startsWith("是,")
+  );
+}
+
+function isNegative(value) {
+  const text = String(value ?? "").trim().toLowerCase();
+  return (
+    ["否", "no", "n", "false", "0", "未合作"].includes(text) ||
+    text.startsWith("否，") ||
+    text.startsWith("否,") ||
+    text.includes("未合作")
+  );
 }
 
 function createEmptyNewsSection(sectionConfig, match = null) {

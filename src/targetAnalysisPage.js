@@ -595,6 +595,7 @@ function countApprovalsByOption(rows, option) {
     if (option.kind === "year") return parts.year === option.year;
     if (option.kind === "period") return parts.year >= option.startYear && parts.year <= option.endYear;
     if (option.kind === "month") return parts.year === option.year && parts.month === option.month;
+    if (option.kind === "yearTotal") return parts.year === option.year;
     if (option.kind === "total") return true;
     return false;
   }).length;
@@ -656,6 +657,21 @@ function createSalesOption(column, index) {
       year,
       month,
       order: year + month / 12,
+      index
+    };
+  }
+
+  const yearTotalMatch = label.match(/^(20\d{2})年?合计$/);
+  if (yearTotalMatch) {
+    const year = Number(yearTotalMatch[1]);
+    return {
+      key: column.key,
+      label: column.label,
+      displayLabel: `${year}年合计`,
+      axisLabel: `${year}合计`,
+      kind: "yearTotal",
+      year,
+      order: year + 0.95,
       index
     };
   }

@@ -25,6 +25,9 @@ export function matchWorkbookSections(workbook, config) {
 }
 
 function findSection(workbook, sectionConfig, allSections) {
+  const preferredMatch = findPreferredSheet(workbook, sectionConfig);
+  if (preferredMatch) return preferredMatch;
+
   const matchers = getMatchers(sectionConfig);
 
   for (const sheet of workbook.sheets) {
@@ -57,6 +60,22 @@ function findSection(workbook, sectionConfig, allSections) {
   }
 
   return null;
+}
+
+function findPreferredSheet(workbook, sectionConfig) {
+  if (!sectionConfig.preferredSheetName) return null;
+
+  const preferredMatcher = normalizeComparable(sectionConfig.preferredSheetName);
+  const sheet = workbook.sheets.find((candidate) => matchesText(candidate.name, [preferredMatcher]));
+  if (!sheet) return null;
+
+  return {
+    sheetName: sheet.name,
+    startRow: 0,
+    endRow: Math.max(sheet.rows.length - 1, 0),
+    rows: sheet.rows,
+    matchType: "preferred-sheet"
+  };
 }
 
 function fillDynamicTables(workbook, tableMatches, usedWholeSheets) {

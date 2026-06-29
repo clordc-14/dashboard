@@ -33,8 +33,26 @@ export const dashboardConfig = {
     {
       key: "archivedProducts",
       title: "已建档品种明细",
-      matchTitle: "已建档品种明细",
-      aliases: ["已建档品种", "建档品种", "品种明细"]
+      matchTitle: "新药表格",
+      preferredSheetName: "新药表格",
+      aliases: ["已建档品种", "建档品种", "品种明细"],
+      rowFilters: [{ field: "southwestArchived", operator: "affirmative" }],
+      displayColumns: [
+        { key: "sequence", label: "序号", field: "sequence" },
+        { key: "productName", label: "品种名称", field: "productName", sourceField: "southwestName" },
+        { key: "companyName", label: "厂牌", field: "companyName" },
+        { key: "brandType", label: "厂牌类型", field: "brandType" },
+        { key: "approvalDate", label: "获批时间", field: "approvalDate" },
+        { key: "indication", label: "获批适应症", field: "indication" },
+        { key: "diseaseArea", label: "疾病领域", field: "diseaseArea" },
+        { key: "registrationCategory", label: "注册分类", field: "registrationCategory" },
+        { key: "drugType", label: "药品类型", field: "drugType" },
+        { key: "therapyType", label: "药品治疗类型", field: "therapyType" },
+        { key: "targetCount", label: "靶点数目", field: "targetCount" },
+        { key: "target", label: "靶点", field: "target" },
+        { key: "purchase", label: "采购", field: "purchase" },
+        { key: "rating", label: "评价", field: "rating" }
+      ]
     },
     {
       key: "weeklyNewArchived",
@@ -45,8 +63,10 @@ export const dashboardConfig = {
     {
       key: "needLeaderSupport",
       title: "需领导协助引进（未合作厂牌）",
-      matchTitle: "需领导协助引进（未合作厂牌）",
-      aliases: ["需领导协助引进", "领导协助", "未合作厂牌"]
+      matchTitle: "新药表格",
+      preferredSheetName: "新药表格",
+      aliases: ["需领导协助引进", "领导协助", "未合作厂牌"],
+      rowFilters: [{ field: "isCooperation", operator: "negative" }]
     },
     {
       key: "introductionProgress",
@@ -58,7 +78,8 @@ export const dashboardConfig = {
     {
       key: "innovativeDrugPool",
       title: "上市创新药品种池",
-      matchTitle: "上市创新药品种池",
+      matchTitle: "新药表格",
+      preferredSheetName: "新药表格",
       aliases: ["创新药品种池", "创新药品种", "重点关注品种", "其他表格板块 2", "其他表格板块2"],
       autoFillFromUnmatched: true
     },

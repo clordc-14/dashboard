@@ -707,6 +707,20 @@ function createSalesOption(column, index) {
     };
   }
 
+  const yearTotalMatch = label.match(/^(20\d{2})年?合计$/);
+  if (yearTotalMatch) {
+    const year = Number(yearTotalMatch[1]);
+    return {
+      key: column.key,
+      label: column.label,
+      displayLabel: `${year}年合计`,
+      axisLabel: `${year}合计`,
+      kind: "yearTotal",
+      order: year + 0.95,
+      index
+    };
+  }
+
   if (label === "合计累计") {
     return {
       key: column.key,
