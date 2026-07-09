@@ -13,8 +13,66 @@ import "./styles/dashboard.css";
 const app = document.querySelector("#app");
 const sinopharmLogoUrl = new URL("./assets/sinopharm-logo.png", import.meta.url).href;
 const guideItems = ["创新药", "麻精", "罕见病", "集采原研", "HIV药品"];
+const GUIDE_INNOVATION = "创新药";
+const GUIDE_CONTROLLED_DRUGS = "麻精";
+const controlledDrugData = {
+  overview: {
+    catalogCount: 128,
+    archivedCount: 55,
+    archiveRate: 82,
+    salesText: "1.26亿元"
+  },
+  salesByQuarter: [
+    { label: "第一季度", value: 46, color: "#4776d0" },
+    { label: "第二季度", value: 31, color: "#f1872d" },
+    { label: "第三季度", value: 14, color: "#f3bd22" },
+    { label: "第四季度", value: 9, color: "#58b947" }
+  ],
+  categories: [
+    {
+      key: "narcotic",
+      title: "麻醉药品",
+      color: "#4776d0",
+      catalogCount: 32,
+      domesticCount: 18,
+      archivedCount: 17,
+      archiveRate: 94,
+      salesText: "4,680万",
+      unarchived: ["待正式表格源核对 1 个品种"],
+      focus: ["维持高建档覆盖，优先核准目录与国内上市口径。", "销售贡献稳定，适合做月度库存与采购联动看板。"],
+      actions: ["补齐未建档品种责任人与预计建档时间", "按采购负责人拆分销售与库存风险"]
+    },
+    {
+      key: "psychotropic-one",
+      title: "第一类精神药品",
+      color: "#55b947",
+      catalogCount: 18,
+      domesticCount: 10,
+      archivedCount: 5,
+      archiveRate: 50,
+      salesText: "2,150万",
+      unarchived: ["γ-羟丁酸", "马吲哚", "司可巴比妥", "他喷他多", "含羟考酮复方口服固体制剂"],
+      focus: ["建档率仍有提升空间，建议把未建档品种集中进跟进清单。", "优先识别预测销售额较高、临床需求较明确的品种。"],
+      actions: ["新增未建档品种的厂牌、采购、准入状态字段", "对高潜品种补销售预测与合作厂牌状态"]
+    },
+    {
+      key: "psychotropic-two",
+      title: "第二类精神药品",
+      color: "#31bdb5",
+      catalogCount: 78,
+      domesticCount: 39,
+      archivedCount: 33,
+      archiveRate: 74,
+      salesText: "6,100万",
+      unarchived: ["安纳咖", "氨氯草", "依他佐辛", "麦角胺咖啡因片", "氟西泮", "含地芬诺酯复方制剂"],
+      focus: ["品种基数最大，适合用分层看板区分已建档、待建档与无需动作。", "需关注销售额集中度，避免重点品种被长尾清单淹没。"],
+      actions: ["按销售额和临床科室做二级筛选", "补充采购频次、库存天数与异常波动提醒"]
+    }
+  ]
+};
 let dashboardState = demoDashboardData;
 let notice = null;
+let activeGuide = window.location.hash === "#controlled-drugs" ? GUIDE_CONTROLLED_DRUGS : GUIDE_INNOVATION;
 
 initializeDashboard();
 window.addEventListener("beforeprint", () => document.body.classList.add("is-printing-pdf"));
@@ -28,6 +86,7 @@ async function initializeDashboard() {
 function renderDashboard() {
   const overview = getBusinessOverview(dashboardState);
   const meta = dashboardState.meta || {};
+  const isControlledDrugGuide = activeGuide === GUIDE_CONTROLLED_DRUGS;
 
   app.innerHTML = `
     <div class="app-shell">
@@ -59,15 +118,52 @@ function renderDashboard() {
       </header>
 
       <nav class="guide-nav" aria-label="业务导引">
-        ${guideItems
-          .map((item, index) =>
-            index === 0
-              ? `<a class="guide-item is-active" href="#innovation-content">${item}</a>`
-              : `<button class="guide-item" type="button" data-guide-pending="${item}">${item}</button>`
-          )
-          .join("")}
+        ${renderGuideItems()}
       </nav>
 
+      ${
+        isControlledDrugGuide
+          ? renderControlledDrugDashboard()
+          : renderInnovationDashboard(overview)
+      }
+
+      <div class="analysis-launcher" aria-label="数据分析功能">
+        <button class="analysis-orb" type="button" aria-expanded="false" aria-controls="analysisMenu" title="数据分析">
+          <i data-lucide="sparkles"></i>
+        </button>
+        <div class="analysis-menu" id="analysisMenu">
+          <a class="analysis-menu-item" href="/analysis.html"><i data-lucide="factory"></i><span>厂牌分析</span></a>
+          <a class="analysis-menu-item" href="/product-analysis.html"><i data-lucide="pill"></i><span>品种分析</span></a>
+          <a class="analysis-menu-item" href="/target-analysis.html"><i data-lucide="target"></i><span>靶点分析</span></a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  bindUpload();
+  bindGuideNav();
+  bindPdfExport();
+  bindAnalysisLauncher();
+  renderNotice();
+  const newsContainer = document.querySelector("#newsSections");
+  const tableContainer = document.querySelector("#tableCards");
+  if (newsContainer) renderNewsSections(newsContainer, dashboardState.newsSections, dashboardState.tableSections);
+  if (tableContainer) renderTableCards(tableContainer, dashboardState.tableSections, openTableSection);
+  createIcons({ icons });
+}
+
+function renderGuideItems() {
+  return guideItems
+    .map((item) => {
+      const isActive = item === activeGuide;
+      const current = isActive ? ' aria-current="page"' : "";
+      return `<button class="guide-item${isActive ? " is-active" : ""}" type="button" data-guide-target="${item}"${current}>${item}</button>`;
+    })
+    .join("");
+}
+
+function renderInnovationDashboard(overview) {
+  return `
       <main id="innovation-content">
         <section class="status-band overview-band" id="uploadZone" aria-label="经营信息总览，可拖拽上传 Excel">
           <p class="business-overview"><strong>经营信息总览：</strong>${overview.text}</p>
@@ -96,28 +192,212 @@ function renderDashboard() {
           <div id="tableCards" class="table-card-grid"></div>
         </section>
       </main>
+  `;
+}
 
-      <div class="analysis-launcher" aria-label="数据分析功能">
-        <button class="analysis-orb" type="button" aria-expanded="false" aria-controls="analysisMenu" title="数据分析">
-          <i data-lucide="sparkles"></i>
-        </button>
-        <div class="analysis-menu" id="analysisMenu">
-          <a class="analysis-menu-item" href="/analysis.html"><i data-lucide="factory"></i><span>厂牌分析</span></a>
-          <a class="analysis-menu-item" href="/product-analysis.html"><i data-lucide="pill"></i><span>品种分析</span></a>
-          <a class="analysis-menu-item" href="/target-analysis.html"><i data-lucide="target"></i><span>靶点分析</span></a>
-        </div>
+function renderControlledDrugDashboard() {
+  const { overview, categories, salesByQuarter } = controlledDrugData;
+
+  return `
+      <main id="controlled-drug-content" class="controlled-main">
+        <section class="controlled-overview-band" aria-label="麻精经营信息总览">
+          <div class="controlled-overview-copy">
+            <span class="eyebrow">Controlled Drugs</span>
+            <p class="business-overview">
+              <strong>经营信息总览：</strong>依照《药用类精神药品目录（2025 年版）》、《药用类麻醉药品目录（2025 年版）》，麻精药品共<strong>${overview.catalogCount}</strong>个，国药西南建档<strong>${overview.archivedCount}</strong>个，建档率<strong>${overview.archiveRate}%</strong>，2026年累计销售<strong>${overview.salesText}</strong>。
+            </p>
+          </div>
+          <div class="controlled-overview-layout">
+            ${renderControlledOverviewTable(categories)}
+            ${renderControlledSalesPanel(salesByQuarter, overview.salesText)}
+          </div>
+        </section>
+
+        <div id="noticeHost"></div>
+
+        <section class="controlled-category-stack" aria-label="麻精药品分类展示">
+          ${categories.map(renderControlledCategory).join("")}
+        </section>
+      </main>
+  `;
+}
+
+function renderControlledOverviewTable(categories) {
+  return `
+    <div class="controlled-overview-table-card">
+      <div class="controlled-panel-heading">
+        <h2>目录建档概览</h2>
+        <span>示例口径</span>
+      </div>
+      <div class="table-wrap controlled-overview-table">
+        <table>
+          <thead>
+            <tr>
+              <th>目录分类</th>
+              <th>目录品种</th>
+              <th>国内上市品种</th>
+              <th>西南建档品种</th>
+              <th>实际建档率</th>
+              <th>未建档品种</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${categories
+              .map(
+                (category) => `
+                  <tr>
+                    <th scope="row"><span class="controlled-type-dot" style="--category-color: ${category.color}"></span>${category.title}</th>
+                    <td>${category.catalogCount}</td>
+                    <td>${category.domesticCount}</td>
+                    <td>${category.archivedCount}</td>
+                    <td><strong>${category.archiveRate}%</strong></td>
+                    <td>${renderInlineList(category.unarchived)}</td>
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
+        </table>
       </div>
     </div>
   `;
+}
 
-  bindUpload();
-  bindGuideNav();
-  bindPdfExport();
-  bindAnalysisLauncher();
-  renderNotice();
-  renderNewsSections(document.querySelector("#newsSections"), dashboardState.newsSections, dashboardState.tableSections);
-  renderTableCards(document.querySelector("#tableCards"), dashboardState.tableSections, openTableSection);
-  createIcons({ icons });
+function renderControlledSalesPanel(items, salesText) {
+  return `
+    <section class="controlled-sales-panel">
+      <div class="controlled-panel-heading">
+        <h2>销售额</h2>
+        <span>2026累计</span>
+      </div>
+      <div class="controlled-donut-area">
+        <div class="controlled-donut" style="--donut-gradient: ${getDonutGradient(items)}">
+          <div class="controlled-donut-center">
+            <strong>${salesText}</strong>
+            <span>累计销售</span>
+          </div>
+        </div>
+        <div class="controlled-donut-legend">
+          ${items
+            .map(
+              (item) => `
+                <span>
+                  <i style="--legend-color: ${item.color}"></i>
+                  <b>${item.label}</b>
+                  <em>${item.value}%</em>
+                </span>
+              `
+            )
+            .join("")}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderControlledCategory(category) {
+  return `
+    <article class="controlled-category" style="--category-color: ${category.color}">
+      <div class="controlled-category-title">
+        <h2>${category.title}</h2>
+        <span>${category.archiveRate}% 建档率</span>
+      </div>
+      <div class="controlled-category-grid">
+        <div class="controlled-category-left">
+          <div class="controlled-stat-row">
+            ${renderControlledStat("目录品种", category.catalogCount)}
+            ${renderControlledStat("国内上市", category.domesticCount)}
+            ${renderControlledStat("西南建档", category.archivedCount)}
+          </div>
+          <section class="controlled-detail-panel">
+            <div class="controlled-detail-heading">
+              <h3>未建档品种</h3>
+              <span>${Math.max(category.domesticCount - category.archivedCount, 0)} 个</span>
+            </div>
+            ${renderPillList(category.unarchived)}
+          </section>
+        </div>
+        <section class="controlled-detail-panel">
+          <div class="controlled-detail-heading">
+            <h3>建档状态</h3>
+            <span>${category.salesText}</span>
+          </div>
+          ${renderControlledProgress(category)}
+        </section>
+        <section class="controlled-detail-panel">
+          <div class="controlled-detail-heading">
+            <h3>经营关注</h3>
+            <span>后续接表</span>
+          </div>
+          <div class="controlled-note-stack">
+            ${category.focus.map((item) => `<p>${item}</p>`).join("")}
+          </div>
+          <div class="controlled-action-list">
+            ${category.actions.map((item) => `<span><i data-lucide="check-circle-2"></i>${item}</span>`).join("")}
+          </div>
+        </section>
+      </div>
+    </article>
+  `;
+}
+
+function renderControlledStat(label, value) {
+  return `
+    <div class="controlled-stat">
+      <strong>${value}</strong>
+      <span>${label}</span>
+    </div>
+  `;
+}
+
+function renderControlledProgress(category) {
+  const unarchivedCount = Math.max(category.domesticCount - category.archivedCount, 0);
+  const progressItems = [
+    { label: "已建档", value: category.archivedCount, total: category.domesticCount },
+    { label: "未建档", value: unarchivedCount, total: category.domesticCount },
+    { label: "目录覆盖", value: category.domesticCount, total: category.catalogCount }
+  ];
+
+  return `
+    <div class="controlled-progress-list">
+      ${progressItems
+        .map((item) => {
+          const percent = item.total ? Math.round((item.value / item.total) * 100) : 0;
+          return `
+            <div class="controlled-progress-row">
+              <div>
+                <span>${item.label}</span>
+                <strong>${item.value}/${item.total}</strong>
+              </div>
+              <div class="controlled-progress-track" aria-hidden="true">
+                <i style="width: ${percent}%"></i>
+              </div>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderInlineList(items) {
+  return items.length ? `<span class="controlled-inline-list">${items.join("、")}</span>` : "/";
+}
+
+function renderPillList(items) {
+  if (!items.length) return '<div class="empty-state">暂无未建档品种</div>';
+  return `<div class="controlled-pill-list">${items.map((item) => `<span>${item}</span>`).join("")}</div>`;
+}
+
+function getDonutGradient(items) {
+  let cursor = 0;
+  return `conic-gradient(${items
+    .map((item) => {
+      const start = cursor;
+      cursor += item.value;
+      return `${item.color} ${start}% ${cursor}%`;
+    })
+    .join(", ")})`;
 }
 
 function bindUpload() {
@@ -129,6 +409,8 @@ function bindUpload() {
     input.value = "";
     if (file) handleFile(file);
   });
+
+  if (!uploadZone) return;
 
   uploadZone.addEventListener("dragover", (event) => {
     event.preventDefault();
@@ -148,10 +430,19 @@ function bindUpload() {
 }
 
 function bindGuideNav() {
-  document.querySelectorAll("[data-guide-pending]").forEach((button) => {
+  document.querySelectorAll("[data-guide-target]").forEach((button) => {
     button.addEventListener("click", () => {
-      const name = button.dataset.guidePending;
-      notice = { type: "warning", text: `${name}板块尚待开发，当前首页先展示创新药相关信息。` };
+      const name = button.dataset.guideTarget;
+      if ([GUIDE_INNOVATION, GUIDE_CONTROLLED_DRUGS].includes(name)) {
+        activeGuide = name;
+        notice = null;
+        const hash = name === GUIDE_CONTROLLED_DRUGS ? "#controlled-drugs" : window.location.pathname;
+        window.history.replaceState(null, "", hash);
+        renderDashboard();
+        return;
+      }
+
+      notice = { type: "warning", text: `${name}板块尚待开发，当前先展示${activeGuide}相关信息。` };
       renderNotice();
       document.querySelector("#noticeHost")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
