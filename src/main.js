@@ -1,6 +1,8 @@
 import { createIcons, icons } from "lucide";
 import { dashboardConfig } from "./config/dashboardConfig.js";
+import { controlledDrugDemoData } from "./config/controlledDrugDemoData.js";
 import { demoWorkbookState as demoDashboardData } from "./config/demoWorkbookState.js";
+import { buildControlledDrugDashboard } from "./controlledDrugDashboard.js";
 import { readExcelFile } from "./parser/excelParser.js";
 import { matchWorkbookSections } from "./parser/sectionMatcher.js";
 import { normalizeNewsSection, normalizeTableSection } from "./parser/normalizer.js";
@@ -15,61 +17,6 @@ const sinopharmLogoUrl = new URL("./assets/sinopharm-logo.png", import.meta.url)
 const guideItems = ["创新药", "麻精", "罕见病", "集采原研", "HIV药品"];
 const GUIDE_INNOVATION = "创新药";
 const GUIDE_CONTROLLED_DRUGS = "麻精";
-const controlledDrugData = {
-  overview: {
-    catalogCount: 128,
-    archivedCount: 55,
-    archiveRate: 82,
-    salesText: "1.26亿元"
-  },
-  salesByQuarter: [
-    { label: "第一季度", value: 46, color: "#4776d0" },
-    { label: "第二季度", value: 31, color: "#f1872d" },
-    { label: "第三季度", value: 14, color: "#f3bd22" },
-    { label: "第四季度", value: 9, color: "#58b947" }
-  ],
-  categories: [
-    {
-      key: "narcotic",
-      title: "麻醉药品",
-      color: "#4776d0",
-      catalogCount: 32,
-      domesticCount: 18,
-      archivedCount: 17,
-      archiveRate: 94,
-      salesText: "4,680万",
-      unarchived: ["待正式表格源核对 1 个品种"],
-      focus: ["维持高建档覆盖，优先核准目录与国内上市口径。", "销售贡献稳定，适合做月度库存与采购联动看板。"],
-      actions: ["补齐未建档品种责任人与预计建档时间", "按采购负责人拆分销售与库存风险"]
-    },
-    {
-      key: "psychotropic-one",
-      title: "第一类精神药品",
-      color: "#55b947",
-      catalogCount: 18,
-      domesticCount: 10,
-      archivedCount: 5,
-      archiveRate: 50,
-      salesText: "2,150万",
-      unarchived: ["γ-羟丁酸", "马吲哚", "司可巴比妥", "他喷他多", "含羟考酮复方口服固体制剂"],
-      focus: ["建档率仍有提升空间，建议把未建档品种集中进跟进清单。", "优先识别预测销售额较高、临床需求较明确的品种。"],
-      actions: ["新增未建档品种的厂牌、采购、准入状态字段", "对高潜品种补销售预测与合作厂牌状态"]
-    },
-    {
-      key: "psychotropic-two",
-      title: "第二类精神药品",
-      color: "#31bdb5",
-      catalogCount: 78,
-      domesticCount: 39,
-      archivedCount: 33,
-      archiveRate: 74,
-      salesText: "6,100万",
-      unarchived: ["安纳咖", "氨氯草", "依他佐辛", "麦角胺咖啡因片", "氟西泮", "含地芬诺酯复方制剂"],
-      focus: ["品种基数最大，适合用分层看板区分已建档、待建档与无需动作。", "需关注销售额集中度，避免重点品种被长尾清单淹没。"],
-      actions: ["按销售额和临床科室做二级筛选", "补充采购频次、库存天数与异常波动提醒"]
-    }
-  ]
-};
 let dashboardState = demoDashboardData;
 let notice = null;
 let activeGuide = window.location.hash === "#controlled-drugs" ? GUIDE_CONTROLLED_DRUGS : GUIDE_INNOVATION;
@@ -196,20 +143,20 @@ function renderInnovationDashboard(overview) {
 }
 
 function renderControlledDrugDashboard() {
-  const { overview, categories, salesByQuarter } = controlledDrugData;
+  const { overview, categories, salesPeriods } = dashboardState.controlledDrug || controlledDrugDemoData;
+  const salesText = formatHundredMillion(overview.salesTotal);
 
   return `
       <main id="controlled-drug-content" class="controlled-main">
         <section class="controlled-overview-band" aria-label="麻精经营信息总览">
           <div class="controlled-overview-copy">
-            <span class="eyebrow">Controlled Drugs</span>
             <p class="business-overview">
-              <strong>经营信息总览：</strong>依照《药用类精神药品目录（2025 年版）》、《药用类麻醉药品目录（2025 年版）》，麻精药品共<strong>${overview.catalogCount}</strong>个，国药西南建档<strong>${overview.archivedCount}</strong>个，建档率<strong>${overview.archiveRate}%</strong>，2026年累计销售<strong>${overview.salesText}</strong>。
+              <strong>经营信息总览：</strong>依照《药用类精神药品目录（2025 年版）》、《药用类麻醉药品目录（2025 年版）》，麻精药品共<strong>${overview.catalogCount}</strong>个，有上市药品的<strong>${overview.marketedCount}</strong>个，国药西南建档<strong>${overview.archivedCount}</strong>个，建档率<strong>${overview.archiveRate}%</strong>，${overview.salesYear}年累计销售<strong>${salesText}</strong>。
             </p>
           </div>
           <div class="controlled-overview-layout">
             ${renderControlledOverviewTable(categories)}
-            ${renderControlledSalesPanel(salesByQuarter, overview.salesText)}
+            ${renderControlledSalesPanel(salesPeriods, categories)}
           </div>
         </section>
 
@@ -227,7 +174,7 @@ function renderControlledOverviewTable(categories) {
     <div class="controlled-overview-table-card">
       <div class="controlled-panel-heading">
         <h2>目录建档概览</h2>
-        <span>示例口径</span>
+        <span>动态汇总</span>
       </div>
       <div class="table-wrap controlled-overview-table">
         <table>
@@ -246,7 +193,7 @@ function renderControlledOverviewTable(categories) {
               .map(
                 (category) => `
                   <tr>
-                    <th scope="row"><span class="controlled-type-dot" style="--category-color: ${category.color}"></span>${category.title}</th>
+                    <th scope="row"><span class="controlled-type-dot" style="--category-color: ${category.color}"></span>${escapeHtml(category.title)}</th>
                     <td>${category.catalogCount}</td>
                     <td>${category.domesticCount}</td>
                     <td>${category.archivedCount}</td>
@@ -263,34 +210,14 @@ function renderControlledOverviewTable(categories) {
   `;
 }
 
-function renderControlledSalesPanel(items, salesText) {
+function renderControlledSalesPanel(periods, categories) {
   return `
     <section class="controlled-sales-panel">
       <div class="controlled-panel-heading">
-        <h2>销售额</h2>
-        <span>2026累计</span>
+        <h2>销售额趋势</h2>
+        <span>分类销售与合计</span>
       </div>
-      <div class="controlled-donut-area">
-        <div class="controlled-donut" style="--donut-gradient: ${getDonutGradient(items)}">
-          <div class="controlled-donut-center">
-            <strong>${salesText}</strong>
-            <span>累计销售</span>
-          </div>
-        </div>
-        <div class="controlled-donut-legend">
-          ${items
-            .map(
-              (item) => `
-                <span>
-                  <i style="--legend-color: ${item.color}"></i>
-                  <b>${item.label}</b>
-                  <em>${item.value}%</em>
-                </span>
-              `
-            )
-            .join("")}
-        </div>
-      </div>
+      ${renderCombinedSalesChart(periods, categories)}
     </section>
   `;
 }
@@ -314,27 +241,22 @@ function renderControlledCategory(category) {
               <h3>未建档品种</h3>
               <span>${Math.max(category.domesticCount - category.archivedCount, 0)} 个</span>
             </div>
-            ${renderPillList(category.unarchived)}
+            ${renderUnarchivedList(category.unarchived)}
           </section>
         </div>
         <section class="controlled-detail-panel">
           <div class="controlled-detail-heading">
-            <h3>建档状态</h3>
-            <span>${category.salesText}</span>
+            <h3>销售 TOP5 品种</h3>
+            <span>${category.topSalesYear ? `${category.topSalesYear}年销售` : "待补销售数据"}</span>
           </div>
-          ${renderControlledProgress(category)}
+          ${renderTopProducts(category.topProducts, category.topSalesYear)}
         </section>
         <section class="controlled-detail-panel">
           <div class="controlled-detail-heading">
             <h3>经营关注</h3>
-            <span>后续接表</span>
+            <span>动态提醒</span>
           </div>
-          <div class="controlled-note-stack">
-            ${category.focus.map((item) => `<p>${item}</p>`).join("")}
-          </div>
-          <div class="controlled-action-list">
-            ${category.actions.map((item) => `<span><i data-lucide="check-circle-2"></i>${item}</span>`).join("")}
-          </div>
+          ${renderManagementFocus(category)}
         </section>
       </div>
     </article>
@@ -350,54 +272,167 @@ function renderControlledStat(label, value) {
   `;
 }
 
-function renderControlledProgress(category) {
-  const unarchivedCount = Math.max(category.domesticCount - category.archivedCount, 0);
-  const progressItems = [
-    { label: "已建档", value: category.archivedCount, total: category.domesticCount },
-    { label: "未建档", value: unarchivedCount, total: category.domesticCount },
-    { label: "目录覆盖", value: category.domesticCount, total: category.catalogCount }
-  ];
+function renderInlineList(items) {
+  return items.length
+    ? `<span class="controlled-inline-list">${items.map((item) => escapeHtml(item.name || item)).join("、")}</span>`
+    : "/";
+}
 
+function renderUnarchivedList(items) {
+  if (!items.length) return '<div class="empty-state">暂无未建档品种</div>';
   return `
-    <div class="controlled-progress-list">
-      ${progressItems
+    <div class="controlled-unarchived-list">
+      ${items
         .map((item) => {
-          const percent = item.total ? Math.round((item.value / item.total) * 100) : 0;
-          return `
-            <div class="controlled-progress-row">
-              <div>
-                <span>${item.label}</span>
-                <strong>${item.value}/${item.total}</strong>
-              </div>
-              <div class="controlled-progress-track" aria-hidden="true">
-                <i style="width: ${percent}%"></i>
-              </div>
-            </div>
-          `;
+          const management = item.management || [];
+          const details = management.length
+            ? management
+                .map((entry) => {
+                  const label = [entry.product, entry.status].filter(Boolean).join("：") || "已列入未建档管理";
+                  return `<small>${escapeHtml(label)}</small>`;
+                })
+                .join("")
+            : "<small>未建档管理中暂未补充品种现状</small>";
+          return `<article><strong>${escapeHtml(item.name || item)}</strong>${details}</article>`;
         })
         .join("")}
     </div>
   `;
 }
 
-function renderInlineList(items) {
-  return items.length ? `<span class="controlled-inline-list">${items.join("、")}</span>` : "/";
+function renderTopProducts(items, year) {
+  if (!items.length) return '<div class="empty-state">未识别到该分类的销售明细</div>';
+  return `
+    <ol class="controlled-top-products">
+      ${items
+        .map(
+          (item, index) => `
+            <li>
+              <span class="controlled-rank">${index + 1}</span>
+              <div>
+                <strong>${escapeHtml(item.name)}</strong>
+                <small>${escapeHtml(item.indication || "暂未填写适应症")}</small>
+              </div>
+              <em>${formatTopSalesAmount(item.sales)}${year ? " 万元" : ""}</em>
+            </li>
+          `
+        )
+        .join("")}
+    </ol>
+  `;
 }
 
-function renderPillList(items) {
-  if (!items.length) return '<div class="empty-state">暂无未建档品种</div>';
-  return `<div class="controlled-pill-list">${items.map((item) => `<span>${item}</span>`).join("")}</div>`;
+function renderManagementFocus(category) {
+  const unarchivedCount = Math.max(category.domesticCount - category.archivedCount, 0);
+  const managedItems = category.unarchived.filter((item) => item.management?.length);
+  const missingItems = category.unarchived.filter((item) => !item.management?.length);
+  const coverage = category.unarchived.length ? Math.round((managedItems.length / category.unarchived.length) * 100) : 100;
+
+  return `
+    <div class="controlled-note-stack">
+      <p>国内上市品种中有 <strong>${unarchivedCount}</strong> 个尚未建档，当前建档覆盖率为 <strong>${category.archiveRate}%</strong>。</p>
+      <p>“未建档管理”已匹配 <strong>${managedItems.length}</strong> 个品种，现状信息覆盖 <strong>${coverage}%</strong>。</p>
+    </div>
+    ${
+      missingItems.length
+        ? `<div class="controlled-action-list"><span><i data-lucide="circle-alert"></i>待补充现状：${escapeHtml(missingItems.map((item) => item.name).join("、"))}</span></div>`
+        : '<div class="controlled-action-list"><span><i data-lucide="circle-check"></i>未建档品种均已在管理表中补充品种现状</span></div>'
+    }
+  `;
 }
 
-function getDonutGradient(items) {
-  let cursor = 0;
-  return `conic-gradient(${items
-    .map((item) => {
-      const start = cursor;
-      cursor += item.value;
-      return `${item.color} ${start}% ${cursor}%`;
-    })
-    .join(", ")})`;
+function renderCombinedSalesChart(periods, categories) {
+  if (!periods?.length) return '<div class="empty-state">未识别到年度销售数据</div>';
+
+  const width = Math.max(600, periods.length * 142);
+  const height = 308;
+  const margin = { top: 24, right: 28, bottom: 54, left: 68 };
+  const chartWidth = width - margin.left - margin.right;
+  const chartHeight = height - margin.top - margin.bottom;
+  const maxValue = Math.max(1, ...periods.map((period) => period.total));
+  const yMax = getChartMax(maxValue);
+  const xStep = chartWidth / periods.length;
+  const barWidth = Math.min(22, Math.max(12, (xStep - 28) / categories.length));
+  const barGap = 5;
+  const barsWidth = categories.length * barWidth + (categories.length - 1) * barGap;
+  const yFor = (value) => margin.top + chartHeight - (Number(value || 0) / yMax) * chartHeight;
+  const xFor = (index) => margin.left + index * xStep + xStep / 2;
+  const gridLines = Array.from({ length: 5 }, (_, index) => {
+    const value = (yMax * (4 - index)) / 4;
+    const y = margin.top + (chartHeight * index) / 4;
+    return `<g><line class="controlled-chart-grid" x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" /><text class="controlled-chart-axis" x="${margin.left - 10}" y="${y + 4}" text-anchor="end">${formatSalesAxis(value)}</text></g>`;
+  }).join("");
+  const bars = periods
+    .flatMap((period, periodIndex) =>
+      categories.map((category, categoryIndex) => {
+        const value = Number(period.values?.[category.key] || 0);
+        const x = xFor(periodIndex) - barsWidth / 2 + categoryIndex * (barWidth + barGap);
+        const y = yFor(value);
+        const barHeight = margin.top + chartHeight - y;
+        return `<rect class="controlled-chart-bar" x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" rx="3" fill="${category.color}"><title>${escapeHtml(category.title)} · ${period.year}销售：${formatSalesAmount(value)}万元</title></rect>`;
+      })
+    )
+    .join("");
+  const totalPoints = periods.map((period, index) => `${xFor(index)},${yFor(period.total)}`).join(" ");
+  const pointMarkers = periods
+    .map((period, index) => `<circle class="controlled-chart-total-point" cx="${xFor(index)}" cy="${yFor(period.total)}" r="4"><title>合计 · ${period.year}销售：${formatSalesAmount(period.total)}万元</title></circle>`)
+    .join("");
+  const labels = periods
+    .map((period, index) => `<text class="controlled-chart-axis" x="${xFor(index)}" y="${height - 22}" text-anchor="middle">${String(period.year).slice(-2)}销售</text>`)
+    .join("");
+  const legend = [
+    ...categories.map((category) => ({ label: category.title, color: category.color, type: "bar" })),
+    { label: "合计", color: "#243f6c", type: "line" }
+  ]
+    .map((item) => `<span class="controlled-chart-legend-${item.type}" style="--legend-color: ${item.color}">${escapeHtml(item.label)}</span>`)
+    .join("");
+
+  return `
+    <div class="controlled-sales-chart">
+      <div class="controlled-chart-legend">${legend}</div>
+      <div class="controlled-chart-scroll">
+        <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="按麻醉药品、第一类精神药品、第二类精神药品及合计展示的年度销售额组合图">
+          ${gridLines}
+          <line class="controlled-chart-axis-line" x1="${margin.left}" y1="${height - margin.bottom}" x2="${width - margin.right}" y2="${height - margin.bottom}" />
+          ${bars}
+          <polyline class="controlled-chart-total-line" points="${totalPoints}" />
+          ${pointMarkers}
+          ${labels}
+        </svg>
+      </div>
+      <small>单位：万元；柱形表示各目录分类，折线表示合计。</small>
+    </div>
+  `;
+}
+
+function getChartMax(value) {
+  const magnitude = 10 ** Math.floor(Math.log10(Math.max(value, 1)));
+  return Math.ceil(value / magnitude) * magnitude;
+}
+
+function formatSalesAmount(value) {
+  return new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 2 }).format(Number(value || 0));
+}
+
+function formatTopSalesAmount(value) {
+  return new Intl.NumberFormat("zh-CN", { maximumFractionDigits: 0 }).format(Number(value || 0));
+}
+
+function formatSalesAxis(value) {
+  return value >= 1000 ? `${(value / 1000).toFixed(value % 1000 ? 1 : 0)}k` : formatSalesAmount(value);
+}
+
+function formatHundredMillion(value) {
+  return `${(Number(value || 0) / 10000).toFixed(2)}亿元`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function bindUpload() {
@@ -490,7 +525,7 @@ async function handleFile(file) {
 
     notice = {
       type: "success",
-      text: `解析成功：识别 ${nextState.meta.recognizedNewsSections} 个新闻板块、${nextState.meta.recognizedTableSections} 个表格板块。`
+      text: `解析成功：识别 ${nextState.meta.recognizedNewsSections} 个新闻板块、${nextState.meta.recognizedTableSections} 个表格板块${nextState.meta.recognizedControlledDrugDashboard ? "，并已更新麻精经营看板" : ""}。`
     };
     renderDashboard();
   } catch (error) {
@@ -506,6 +541,7 @@ function buildDashboardState(workbook) {
   const matches = matchWorkbookSections(workbook, dashboardConfig);
   const newsSections = matches.newsMatches.map(({ section, match }) => normalizeNewsSection(match, section));
   const tableSections = matches.tableMatches.map(({ section, match }) => normalizeTableSection(match, section));
+  const controlledDrug = buildControlledDrugDashboard(workbook);
   const warnings = [];
 
   if (!newsSections.some((section) => section.items.length)) {
@@ -516,6 +552,10 @@ function buildDashboardState(workbook) {
     warnings.push("未识别到表格明细，请检查 Excel 表头和数据区域。");
   }
 
+  if (workbook.sheetNames.some((name) => String(name).replace(/[\s—_()（）]/g, "") === "网站用表麻精") && !controlledDrug) {
+    warnings.push("已识别“网站用表—麻精”工作表，但未找到完整的麻精字段，请检查是否包含序号、中文名、分类等表头。");
+  }
+
   return {
     meta: {
       mode: "uploaded",
@@ -523,10 +563,12 @@ function buildDashboardState(workbook) {
       sheetCount: workbook.sheetCount,
       recognizedNewsSections: newsSections.filter((section) => section.items.length).length,
       recognizedTableSections: tableSections.filter((section) => section.rows.length).length,
+      recognizedControlledDrugDashboard: Boolean(controlledDrug),
       warnings
     },
     newsSections,
-    tableSections
+    tableSections,
+    controlledDrug
   };
 }
 

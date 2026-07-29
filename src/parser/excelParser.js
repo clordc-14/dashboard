@@ -105,6 +105,7 @@ function readCell(sheet, rowIndex, columnIndex) {
 
   return {
     value: formatCellValue(cell),
+    rawValue: cell.v ?? "",
     link: normalizeCellLink(cell),
     rowIndex,
     columnIndex
