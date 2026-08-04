@@ -8,7 +8,9 @@ import { matchWorkbookSections } from "./parser/sectionMatcher.js";
 import { normalizeNewsSection, normalizeTableSection } from "./parser/normalizer.js";
 import { renderNewsSections } from "./render/newsRenderer.js";
 import { renderTableCards } from "./render/tableRenderer.js";
+import { buildResearchSurvey, getSurveyMetrics, isAffirmative as isSurveyAffirmative } from "./researchSurvey.js";
 import { loadDashboardState, saveDashboardState } from "./state/storage.js";
+import { formatRole, isAdministrator, loadCurrentUser } from "./userSession.js";
 import "./styles/base.css";
 import "./styles/dashboard.css";
 
@@ -20,13 +22,16 @@ const GUIDE_CONTROLLED_DRUGS = "麻精";
 let dashboardState = demoDashboardData;
 let notice = null;
 let activeGuide = window.location.hash === "#controlled-drugs" ? GUIDE_CONTROLLED_DRUGS : GUIDE_INNOVATION;
+let currentUser = { name: "当前用户", role: "viewer" };
 
 initializeDashboard();
 window.addEventListener("beforeprint", () => document.body.classList.add("is-printing-pdf"));
 window.addEventListener("afterprint", () => document.body.classList.remove("is-printing-pdf"));
 
 async function initializeDashboard() {
-  dashboardState = (await loadDashboardState()) || demoDashboardData;
+  const [storedState, user] = await Promise.all([loadDashboardState(), loadCurrentUser()]);
+  dashboardState = storedState || demoDashboardData;
+  currentUser = user;
   renderDashboard();
 }
 
@@ -57,9 +62,13 @@ function renderDashboard() {
           </form>
           <div class="topbar-actions">
             <span class="last-update"><i data-lucide="clock-3"></i><span>${formatDateTime(meta.updatedAt)}</span></span>
+            <a class="user-greeting" href="/welcome.html" aria-label="打开欢迎页"><i data-lucide="circle-user-round"></i><span>欢迎，${escapeHtml(currentUser.name)}</span><small>${formatRole(currentUser)}</small></a>
             <button class="button button-ghost" id="pdfExportButton" type="button"><i data-lucide="file-down"></i><span>PDF 导出</span></button>
-            <label class="button button-primary" for="excelInput"><i data-lucide="upload"></i><span>上传 Excel</span></label>
-            <input id="excelInput" type="file" accept=".xlsx,.xls" hidden />
+            ${
+              isAdministrator(currentUser)
+                ? '<label class="button button-primary" for="excelInput"><i data-lucide="upload"></i><span>上传 Excel</span></label><input id="excelInput" type="file" accept=".xlsx,.xls" hidden />'
+                : ""
+            }
           </div>
         </div>
       </header>
@@ -110,35 +119,74 @@ function renderGuideItems() {
 }
 
 function renderInnovationDashboard(overview) {
+  const hasNews = dashboardState.newsSections.some((section) => section.items.length);
+  const hasTableData = dashboardState.tableSections.some((section) => section.rows.length);
+
   return `
       <main id="innovation-content">
-        <section class="status-band overview-band" id="uploadZone" aria-label="经营信息总览，可拖拽上传 Excel">
-          <p class="business-overview"><strong>经营信息总览：</strong>${overview.text}</p>
+        <section class="status-band overview-band${isAdministrator(currentUser) ? "" : " is-readonly"}"${isAdministrator(currentUser) ? ' id="uploadZone" aria-label="经营信息总览，可拖拽上传 Excel"' : ' aria-label="经营信息总览"'}>
+          <div>
+            <p class="business-overview"><strong>经营信息总览：</strong>${overview.text}</p>
+            ${overview.researchMetrics ? renderResearchProgress(overview.researchMetrics) : renderResearchImportHint()}
+          </div>
+          <a class="survey-entry-card" href="/survey.html">
+            <span><small>Research Survey</small><strong>调研信息填写</strong><em>${overview.researchMetrics ? `还有 ${overview.researchMetrics.currentUserPendingCount} 项待处理` : "上传调研表后开始填写"}</em></span>
+            <i data-lucide="arrow-up-right"></i>
+          </a>
         </section>
 
         <div id="noticeHost"></div>
 
-        <section class="content-band">
-          <div class="section-heading">
-            <div>
-              <span class="eyebrow">News</span>
-              <h2>动态新闻板块</h2>
-            </div>
-          </div>
-          <div id="newsSections" class="news-grid"></div>
-        </section>
+        ${
+          hasNews
+            ? `
+              <section class="content-band">
+                <div class="section-heading">
+                  <div>
+                    <span class="eyebrow">News</span>
+                    <h2>动态新闻板块</h2>
+                  </div>
+                </div>
+                <div id="newsSections" class="news-grid"></div>
+              </section>
+            `
+            : ""
+        }
 
-        <section class="content-band">
-          <div class="section-heading">
-            <div>
-              <span class="eyebrow">Tables</span>
-              <h2>表格展示板块</h2>
-            </div>
-            <a class="button button-ghost" href="/table.html"><i data-lucide="table-2"></i><span>完整表格</span></a>
-          </div>
-          <div id="tableCards" class="table-card-grid"></div>
-        </section>
+        ${
+          hasTableData
+            ? `
+              <section class="content-band">
+                <div class="section-heading">
+                  <div>
+                    <span class="eyebrow">Tables</span>
+                    <h2>表格展示板块</h2>
+                  </div>
+                  <a class="button button-ghost" href="/table.html"><i data-lucide="table-2"></i><span>完整表格</span></a>
+                </div>
+                <div id="tableCards" class="table-card-grid"></div>
+              </section>
+            `
+            : ""
+        }
       </main>
+  `;
+}
+
+function renderResearchProgress(metrics) {
+  return `
+    <div class="research-progress" aria-label="调研进度">
+      <span>截至今日，共调研 <strong>${metrics.totalCount}</strong> 项</span>
+      <span>已完成填写 <strong>${metrics.completeCount}</strong> 项</span>
+      <span>待完善 <strong>${metrics.incompleteCount}</strong> 项</span>
+      <span>您待完善 <strong>${metrics.currentUserPendingCount}</strong> 项</span>
+    </div>
+  `;
+}
+
+function renderResearchImportHint() {
+  return `
+    <p class="research-import-hint">尚未识别到“网站用表—调研表”。${isAdministrator(currentUser) ? "可上传附件后生成实时调研进度。" : "请联系管理员导入调研数据。"}</p>
   `;
 }
 
@@ -439,6 +487,8 @@ function bindUpload() {
   const input = document.querySelector("#excelInput");
   const uploadZone = document.querySelector("#uploadZone");
 
+  if (!input) return;
+
   input.addEventListener("change", () => {
     const file = input.files?.[0];
     input.value = "";
@@ -525,7 +575,7 @@ async function handleFile(file) {
 
     notice = {
       type: "success",
-      text: `解析成功：识别 ${nextState.meta.recognizedNewsSections} 个新闻板块、${nextState.meta.recognizedTableSections} 个表格板块${nextState.meta.recognizedControlledDrugDashboard ? "，并已更新麻精经营看板" : ""}。`
+      text: `解析成功：识别 ${nextState.meta.recognizedNewsSections} 个新闻板块、${nextState.meta.recognizedTableSections} 个表格板块${nextState.researchSurvey ? `、${nextState.researchSurvey.records.length} 条调研记录` : ""}${nextState.meta.recognizedControlledDrugDashboard ? "，并已更新麻精经营看板" : ""}。`
     };
     renderDashboard();
   } catch (error) {
@@ -542,13 +592,14 @@ function buildDashboardState(workbook) {
   const newsSections = matches.newsMatches.map(({ section, match }) => normalizeNewsSection(match, section));
   const tableSections = matches.tableMatches.map(({ section, match }) => normalizeTableSection(match, section));
   const controlledDrug = buildControlledDrugDashboard(workbook);
+  const researchSurvey = buildResearchSurvey(workbook);
   const warnings = [];
 
-  if (!newsSections.some((section) => section.items.length)) {
+  if (!newsSections.some((section) => section.items.length) && !researchSurvey) {
     warnings.push("未识别到新闻板块，请检查 Excel 中的板块标题或 sheet 名。");
   }
 
-  if (!tableSections.some((section) => section.rows.length)) {
+  if (!tableSections.some((section) => section.rows.length) && !researchSurvey) {
     warnings.push("未识别到表格明细，请检查 Excel 表头和数据区域。");
   }
 
@@ -568,7 +619,8 @@ function buildDashboardState(workbook) {
     },
     newsSections,
     tableSections,
-    controlledDrug
+    controlledDrug,
+    researchSurvey
   };
 }
 
@@ -604,6 +656,20 @@ function openTableSection(sectionKey) {
 }
 
 function getBusinessOverview(state) {
+  const survey = state.researchSurvey;
+  if (survey?.records?.length) {
+    const currentYear = new Date().getFullYear();
+    const approvedThisYear = survey.records.filter((record) => getDateParts(record.approvalDate)?.year === currentYear);
+    const landedCount = approvedThisYear.filter((record) => isSurveyAffirmative(record.landedInSichuan)).length;
+    const archivedCount = approvedThisYear.filter((record) => isSurveyAffirmative(record.southwestArchived)).length;
+    const archiveRate = landedCount ? Math.round((archivedCount / landedCount) * 100) : 0;
+
+    return {
+      text: `${currentYear}年至今，NMPA批准上市创新药${approvedThisYear.length}个，落地四川${landedCount}个，国药西南建档${archivedCount}个，建档率${archiveRate}%。`,
+      researchMetrics: getSurveyMetrics(survey, currentUser.name)
+    };
+  }
+
   const poolSection = state.tableSections.find((section) => section.key === "innovativeDrugPool");
   const approved2026Rows = poolSection?.rows.filter((row) => getApprovalYear(row) === 2026) || [];
   const landedCount = approved2026Rows.filter((row) => isAffirmative(getRowField(row, "landedInSichuan"))).length;

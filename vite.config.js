@@ -8,6 +8,8 @@ export default {
     rollupOptions: {
       input: {
         index: resolve(rootDir, "index.html"),
+        welcome: resolve(rootDir, "welcome.html"),
+        survey: resolve(rootDir, "survey.html"),
         table: resolve(rootDir, "table.html"),
         search: resolve(rootDir, "search.html"),
         analysis: resolve(rootDir, "analysis.html"),
