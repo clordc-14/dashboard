@@ -9,7 +9,7 @@ const sinopharmLogoUrl = new URL("./assets/sinopharm-logo.png", import.meta.url)
 const SERIES_COLORS = ["#0f766e", "#245b89", "#b7791f", "#8b5cf6", "#b42318", "#2f7d32", "#0e7490", "#a21caf"];
 const BASE_RANKING_COLUMNS = [
   { key: "rank", label: "排名" },
-  { key: "displayName", label: "西南名称（CMS品名）" },
+  { key: "displayName", label: "西南名称（内部品名）" },
   { key: "companyName", label: "厂牌" },
   { key: "approvalDate", label: "获批时间" },
   { key: "indication", label: "获批适应症" },
@@ -52,7 +52,7 @@ function renderPage() {
 
       <main class="analysis-main">
         <section class="analysis-title-band target-title-band">
-          <span class="eyebrow">Target Analytics</span>
+          <span class="eyebrow">靶点分析</span>
           <h2>靶点销售趋势、批文数量与重点品种排名</h2>
           <p>基于“上市创新药品种池”的靶点、获批时间与销售字段生成，后续新增 2026.2、2026.3 等月份列会自动进入时间筛选。</p>
         </section>
@@ -443,13 +443,13 @@ function createTopProductsCard(rows, salesOptions, selectedTargetNames) {
   card.className = "analysis-data-card target-ranking-card";
   const note = selectedTargetNames.length
     ? `${selectedTargetNames.join("、")} 的品种明细，排名按所选销售时间合计计算`
-    : "未选择靶点时展示所选时间内销售合计 TOP5 品种";
+    : "未选择靶点时展示所选时间内销售合计前五品种";
 
   card.innerHTML = `
     <div class="analysis-chart-top">
       <div>
         <span class="eyebrow">数据框</span>
-        <h3>销售TOP5品种</h3>
+        <h3>销售前五品种</h3>
       </div>
       <div class="analysis-card-note">${escapeHtml(note)}</div>
     </div>

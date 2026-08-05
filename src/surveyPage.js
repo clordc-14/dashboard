@@ -50,8 +50,8 @@ function renderPage() {
         </a>
         <div class="topbar-actions">
           <a class="user-greeting" href="/welcome.html"><i data-lucide="circle-user-round"></i><span>欢迎，${escapeHtml(currentUser.name)}</span><small>${formatRole(currentUser)}</small></a>
-          <button class="button button-ghost" id="surveyPdfExport" type="button"><i data-lucide="file-down"></i><span>PDF 导出</span></button>
-          ${isAdministrator(currentUser) && survey?.records?.length ? '<button class="button button-primary" id="surveyExcelExport" type="button"><i data-lucide="file-spreadsheet"></i><span>Excel 导出</span></button>' : ""}
+          <button class="button button-ghost" id="surveyPdfExport" type="button"><i data-lucide="file-down"></i><span>导出文档</span></button>
+          ${isAdministrator(currentUser) && survey?.records?.length ? '<button class="button button-primary" id="surveyExcelExport" type="button"><i data-lucide="file-spreadsheet"></i><span>导出表格</span></button>' : ""}
         </div>
       </header>
       <main>
@@ -69,7 +69,7 @@ function renderWorkspace(survey, metrics) {
   return `
     <section class="survey-overview">
       <div>
-        <span class="eyebrow">Research status</span>
+        <span class="eyebrow">调研进度</span>
         <h2>调研信息填写与查阅</h2>
         <p>数据来源：${escapeHtml(survey.source?.sheetName || "网站用表—调研表")}。当前为本设备暂存，正式共享数据将在后端接口接入后同步。</p>
       </div>
@@ -94,7 +94,7 @@ function renderMissingSurvey() {
       <div>
         <i data-lucide="file-up"></i>
         <h2>尚未导入调研表</h2>
-        <p>请由管理员在经营看板上传“网站用表—调研表.xlsx”。导入后，这里会按通用名、厂牌、采购与完成状态自动生成填写任务。</p>
+        <p>请由管理员在经营看板上传“网站用表—调研表”。导入后，这里会按通用名、厂牌、采购与完成状态自动生成填写任务。</p>
         <a class="button button-primary" href="/"><i data-lucide="arrow-left"></i><span>返回经营看板</span></a>
       </div>
     </section>
@@ -145,7 +145,7 @@ function renderResearchForm(survey, record) {
               ${renderSelectField("southwestArchived", "是否建档", record.southwestArchived, ["是", "否"])}
               ${renderSelectField("isT1", "是否 T1 品种", record.isT1, ["是", "否", "其他"])}
               ${renderSelectField("isExclusive", "是否独家品种", record.isExclusive, ["是", "否", "待定", "其他"])}
-              ${renderSelectField("progress", "最新进展", record.progress, ["一、无法动作", "二、等待建档", "三、沟通中（待定）", "四、未合作/无联系人", "五、需求建档", "六、商务不建议/只销售DTP药房品种", "七、调货品种", "其他"])}
+              ${renderSelectField("progress", "最新进展", record.progress, ["一、无法动作", "二、等待建档", "三、沟通中（待定）", "四、未合作/无联系人", "五、需求建档", "六、商务不建议/只销售院外药房品种", "七、调货品种", "其他"])}
             </div>
             <label class="research-field research-field-full"><span>采购备注</span><textarea name="purchaseRemark" rows="3" placeholder="填写补充说明、其他选项的具体原因">${escapeHtml(record.purchaseRemark)}</textarea></label>
           </section>
@@ -229,7 +229,7 @@ function renderContactChangeDialog(record, contacts) {
   return `
     <dialog class="contact-change-dialog" id="contactChangeDialog">
       <form method="dialog" id="contactChangeForm">
-        <div class="contact-dialog-heading"><div><span class="eyebrow">Change request</span><h2>联系人信息变更申请</h2></div><button class="icon-button" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
+        <div class="contact-dialog-heading"><div><span class="eyebrow">变更申请</span><h2>联系人信息变更申请</h2></div><button class="icon-button" value="cancel" aria-label="关闭"><i data-lucide="x"></i></button></div>
         <p>${escapeHtml(record.companyName || "该厂牌")}的联系人修改会先暂存在本设备。待后端审批流接入后，才能提交给管理员并同步至所有品种。</p>
         <label class="research-field"><span>商务联系人（最新）</span><input name="businessContact" value="${escapeAttribute(contacts.businessContact)}" placeholder="姓名、电话" /></label>
         <label class="research-field"><span>销售联系人（最新）</span><input name="salesContact" value="${escapeAttribute(contacts.salesContact)}" placeholder="姓名、电话" /></label>

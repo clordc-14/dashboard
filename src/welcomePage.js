@@ -29,7 +29,7 @@ function renderWelcomePage(user) {
       <main class="welcome-main">
         <section class="welcome-hero">
           <div class="welcome-copy">
-            <span class="eyebrow">Welcome back</span>
+            <span class="eyebrow">欢迎使用</span>
             <h2>欢迎您，${escapeHtml(user.name)}</h2>
             <p>在这里查看经营信息、查阅调研进度，并完成您负责品种的信息填写。</p>
             <div class="welcome-actions">
