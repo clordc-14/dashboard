@@ -1,0 +1,2 @@
+# Copy this file to .dev.vars and supply a development-only API key.
+DEEPSEEK_API_KEY=""
