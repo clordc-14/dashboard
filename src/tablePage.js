@@ -11,12 +11,19 @@ let dashboardState = demoDashboardData;
 const initialParams = new URLSearchParams(window.location.search);
 const initialSectionKey = initialParams.get("section");
 const initialSearch = initialParams.get("search") || "";
+const initialMetricFilters = parseMetricFilters(initialParams.get("filters"));
+const initialTimeRange = initialParams.get("range") || "";
 let selectedSectionKey = "";
 let tableState = {
   search: initialSearch,
   filter: "all",
+  companyFilter: "",
+  indicationFilter: "",
+  approvalYearFilter: "",
   sortKey: "",
   sortDir: "asc",
+  metricFilters: initialMetricFilters,
+  timeRange: initialTimeRange,
   page: 1,
   pageSize: 10
 };
@@ -74,7 +81,17 @@ function renderSectionNav() {
 
     button.addEventListener("click", () => {
       selectedSectionKey = section.key;
-      tableState = { ...tableState, page: 1, filter: "all", sortKey: "" };
+      tableState = {
+        ...tableState,
+        page: 1,
+        filter: "all",
+        companyFilter: "",
+        indicationFilter: "",
+        approvalYearFilter: "",
+        sortKey: "",
+        metricFilters: [],
+        timeRange: ""
+      };
       renderPage();
       history.replaceState(null, "", `/table.html?section=${encodeURIComponent(section.key)}`);
     });
@@ -99,9 +116,11 @@ function renderSelectedTable() {
   title.textContent = section.title;
   titleWrap.append(eyebrow, title);
 
+  const visibleCount = getVisibleRows(section).length;
+  const metricSummary = getMetricFilterSummary(section);
   const total = document.createElement("strong");
   total.className = "detail-count";
-  total.textContent = `${section.rows.length} 条记录`;
+  total.textContent = metricSummary ? `筛选后 ${visibleCount} / ${section.rows.length} 条` : `${section.rows.length} 条记录`;
   header.append(titleWrap, total);
   panel.append(header);
 
@@ -136,17 +155,6 @@ function createToolbar(section) {
   });
   searchWrap.append(search);
 
-  const filter = document.createElement("select");
-  filter.className = "control-select";
-  filter.value = tableState.filter;
-  filter.append(new Option("全部状态", "all"));
-  getFilterOptions(section).forEach((option) => filter.append(new Option(option, option)));
-  filter.addEventListener("change", (event) => {
-    tableState = { ...tableState, filter: event.target.value, page: 1 };
-    renderSelectedTable();
-    createIcons({ icons });
-  });
-
   const pageSize = document.createElement("select");
   pageSize.className = "control-select";
   [10, 20, 50].forEach((size) => pageSize.append(new Option(`${size} / 页`, String(size))));
@@ -157,7 +165,27 @@ function createToolbar(section) {
     createIcons({ icons });
   });
 
-  toolbar.append(searchWrap, filter, pageSize);
+  const metricSummary = getMetricFilterSummary(section);
+  if (metricSummary) {
+    const metricFilter = document.createElement("span");
+    metricFilter.className = "metric-filter-note";
+    metricFilter.innerHTML = `<i data-lucide="filter"></i><span>${metricSummary}</span>`;
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.title = "清除指标筛选";
+    clear.setAttribute("aria-label", "清除指标筛选");
+    clear.innerHTML = '<i data-lucide="x"></i>';
+    clear.addEventListener("click", () => {
+      tableState = { ...tableState, metricFilters: [], timeRange: "", page: 1 };
+      syncTableUrl();
+      renderSelectedTable();
+      createIcons({ icons });
+    });
+    metricFilter.append(clear);
+    toolbar.append(metricFilter);
+  }
+
+  toolbar.append(searchWrap, pageSize);
   return toolbar;
 }
 
@@ -177,6 +205,8 @@ function createTableArea(section) {
   const headRow = document.createElement("tr");
   section.columns.forEach((column) => {
     const th = document.createElement("th");
+    const header = document.createElement("div");
+    header.className = "table-header-content";
     const button = document.createElement("button");
     button.type = "button";
     button.className = "sort-button";
@@ -188,7 +218,10 @@ function createTableArea(section) {
     icon.dataset.lucide = tableState.sortKey === column.key ? (tableState.sortDir === "asc" ? "arrow-up" : "arrow-down") : "arrow-up-down";
     button.append(label, icon);
     button.addEventListener("click", () => toggleSort(column.key));
-    th.append(button);
+    header.append(button);
+    const filter = createTableHeaderFilter(section, column);
+    if (filter) header.append(filter);
+    th.append(header);
     headRow.append(th);
   });
   thead.append(headRow);
@@ -231,30 +264,62 @@ function createPagination(rowCount, pageCount) {
   const info = document.createElement("span");
   info.textContent = `共 ${rowCount} 条，第 ${tableState.page} / ${pageCount} 页`;
 
-  const prev = document.createElement("button");
-  prev.type = "button";
-  prev.className = "button button-ghost";
-  prev.disabled = tableState.page <= 1;
-  prev.innerHTML = '<i data-lucide="chevron-left"></i><span>上一页</span>';
-  prev.addEventListener("click", () => {
-    tableState = { ...tableState, page: Math.max(1, tableState.page - 1) };
-    renderSelectedTable();
-    createIcons({ icons });
+  const controls = document.createElement("div");
+  controls.className = "table-pagination-controls";
+  controls.append(
+    createTablePageButton(1, "首页", tableState.page <= 1),
+    createTablePageButton(tableState.page - 1, "上一页", tableState.page <= 1, "chevron-left")
+  );
+  getTablePaginationItems(tableState.page, pageCount).forEach((item) => {
+    if (item === "…") {
+      const ellipsis = document.createElement("span");
+      ellipsis.className = "table-page-ellipsis";
+      ellipsis.textContent = item;
+      controls.append(ellipsis);
+      return;
+    }
+    const button = createTablePageButton(item, String(item), false);
+    button.classList.add("table-page-number");
+    if (item === tableState.page) {
+      button.classList.add("is-active");
+      button.setAttribute("aria-current", "page");
+    }
+    controls.append(button);
+  });
+  controls.append(
+    createTablePageButton(tableState.page + 1, "下一页", tableState.page >= pageCount, "chevron-right"),
+    createTablePageButton(pageCount, "末页", tableState.page >= pageCount)
+  );
+
+  const jump = document.createElement("form");
+  jump.className = "table-page-jump";
+  jump.innerHTML = `<label>跳至 <input name="page" type="number" min="1" max="${pageCount}" value="${tableState.page}" inputmode="numeric" aria-label="跳转页码" /> 页</label><button class="button button-ghost" type="submit">确定</button>`;
+  jump.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const requested = Number(new FormData(jump).get("page"));
+    goToTablePage(requested, pageCount);
   });
 
-  const next = document.createElement("button");
-  next.type = "button";
-  next.className = "button button-ghost";
-  next.disabled = tableState.page >= pageCount;
-  next.innerHTML = '<span>下一页</span><i data-lucide="chevron-right"></i>';
-  next.addEventListener("click", () => {
-    tableState = { ...tableState, page: Math.min(pageCount, tableState.page + 1) };
-    renderSelectedTable();
-    createIcons({ icons });
-  });
-
-  pagination.append(info, prev, next);
+  pagination.append(info, controls, jump);
   return pagination;
+}
+
+function createTablePageButton(page, label, disabled, icon) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "button button-ghost table-page-button";
+  button.disabled = disabled;
+  button.setAttribute("aria-label", label);
+  button.innerHTML = icon ? `<i data-lucide="${icon}"></i>` : label;
+  button.addEventListener("click", () => goToTablePage(page));
+  return button;
+}
+
+function goToTablePage(page, maximumPage = Number.POSITIVE_INFINITY) {
+  const nextPage = Math.min(maximumPage, Math.max(1, Number.isFinite(Number(page)) ? Math.trunc(Number(page)) : 1));
+  tableState = { ...tableState, page: nextPage };
+  renderSelectedTable();
+  createIcons({ icons });
 }
 
 function getVisibleRows(section) {
@@ -267,7 +332,21 @@ function getVisibleRows(section) {
     .filter((row) => {
       if (tableState.filter === "all") return true;
       return getRowStatus(row) === tableState.filter;
-    });
+    })
+    .filter((row) => {
+      if (!tableState.companyFilter) return true;
+      return getTableColumnValue(section, row, "companyName") === tableState.companyFilter;
+    })
+    .filter((row) => {
+      if (!tableState.indicationFilter) return true;
+      return getTableColumnValue(section, row, "indication") === tableState.indicationFilter;
+    })
+    .filter((row) => {
+      if (!tableState.approvalYearFilter) return true;
+      return getTableApprovalYear(section, row) === tableState.approvalYearFilter;
+    })
+    .filter((row) => matchesMetricTimeRange(section, row, tableState.timeRange))
+    .filter((row) => tableState.metricFilters.every((filter) => matchesMetricFilter(section, row, filter)));
 
   if (!tableState.sortKey) return rows;
 
@@ -281,6 +360,122 @@ function getVisibleRows(section) {
 
 function getFilterOptions(section) {
   return [...new Set(section.rows.map(getRowStatus).filter(Boolean))];
+}
+
+function createTableHeaderFilter(section, column) {
+  const definition = getTableHeaderFilterDefinition(section, column);
+  if (!definition) return null;
+
+  const control = document.createElement("span");
+  control.className = tableState[definition.stateKey] !== definition.allValue ? "header-filter-control is-active" : "header-filter-control";
+  const icon = document.createElement("i");
+  icon.dataset.lucide = "filter";
+  const select = document.createElement("select");
+  select.setAttribute("aria-label", `按${column.label}筛选`);
+  select.append(new Option(definition.allLabel, definition.allValue));
+  definition.values.forEach((value) => select.append(new Option(value, value)));
+  select.value = tableState[definition.stateKey];
+  select.addEventListener("change", (event) => {
+    tableState = { ...tableState, [definition.stateKey]: event.target.value, page: 1 };
+    renderSelectedTable();
+    createIcons({ icons });
+  });
+  control.append(icon, select);
+  return control;
+}
+
+function getTableHeaderFilterDefinition(section, column) {
+  const field = column.field || column.key;
+  if (field === "companyName") {
+    return { stateKey: "companyFilter", allLabel: "全部厂牌", allValue: "", values: getTableColumnOptions(section, "companyName") };
+  }
+  if (field === "indication") {
+    return { stateKey: "indicationFilter", allLabel: "全部适应症", allValue: "", values: getTableColumnOptions(section, "indication") };
+  }
+  if (field === "approvalDate") {
+    return {
+      stateKey: "approvalYearFilter",
+      allLabel: "全部年份",
+      allValue: "",
+      values: [...new Set(section.rows.map((row) => getTableApprovalYear(section, row)).filter(Boolean))].sort((left, right) => Number(right) - Number(left))
+    };
+  }
+  if (["status", "cooperationStatus", "progress"].includes(field)) {
+    return { stateKey: "filter", allLabel: "全部状态", allValue: "all", values: getFilterOptions(section) };
+  }
+  return null;
+}
+
+function getTableColumnOptions(section, field) {
+  return [...new Set(section.rows.map((row) => getTableColumnValue(section, row, field)).filter(Boolean))].sort((left, right) => left.localeCompare(right, "zh-CN"));
+}
+
+function getTableColumnValue(section, row, field) {
+  const column = section.columns.find((candidate) => candidate.field === field || candidate.key === field);
+  return column ? String(getDisplayValue(row, column) || "").trim() : "";
+}
+
+function getTableApprovalYear(section, row) {
+  return getTableColumnValue(section, row, "approvalDate").match(/\d{4}/)?.[0] || "";
+}
+
+function parseMetricFilters(value) {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item) => item && typeof item.field === "string" && typeof item.value === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function matchesMetricTimeRange(section, row, range) {
+  if (!range || range === "all") return true;
+  const matched = range.match(/^range:(\d{4}-\d{2}):(\d{4}-\d{2})$/);
+  if (!matched) return true;
+  const date = getTableColumnValue(section, row, "approvalDate");
+  const dateMatch = date.match(/(\d{4})\D+(\d{1,2})/);
+  if (!dateMatch) return false;
+  const month = `${dateMatch[1]}-${dateMatch[2].padStart(2, "0")}`;
+  return month >= matched[1] && month <= matched[2];
+}
+
+function matchesMetricFilter(section, row, filter) {
+  const value = getTableColumnValue(section, row, filter.field);
+  if (filter.mode === "ratingAtLeast") {
+    const stars = (value.match(/⭐/g) || []).length || Number(value.match(/\d+/)?.[0] || 0);
+    return stars >= Number(filter.value);
+  }
+  if (filter.mode === "includes") return value.includes(filter.value);
+  return value === filter.value;
+}
+
+function getMetricFilterSummary(section) {
+  const labels = tableState.metricFilters.map((filter) => {
+    const column = section.columns.find((item) => item.key === filter.field || item.field === filter.field);
+    if (filter.mode === "ratingAtLeast") return `${column?.label || "评价"} ≥ ${filter.value} 星`;
+    return `${column?.label || filter.field}：${filter.value}`;
+  });
+  if (tableState.timeRange.startsWith("range:")) {
+    const [, start, end] = tableState.timeRange.split(":");
+    labels.unshift(`${start} 至 ${end}`);
+  }
+  return labels.join("；");
+}
+
+function getTablePaginationItems(currentPage, pageCount) {
+  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+  const pages = new Set([1, pageCount, currentPage - 1, currentPage, currentPage + 1]);
+  if (currentPage <= 3) [2, 3, 4].forEach((page) => pages.add(page));
+  if (currentPage >= pageCount - 2) [pageCount - 3, pageCount - 2, pageCount - 1].forEach((page) => pages.add(page));
+  const sorted = [...pages].filter((page) => page >= 1 && page <= pageCount).sort((left, right) => left - right);
+  return sorted.reduce((items, page, index) => {
+    if (index && page - sorted[index - 1] > 1) items.push("…");
+    items.push(page);
+    return items;
+  }, []);
 }
 
 function getRowStatus(row) {
@@ -301,6 +496,8 @@ function syncTableUrl() {
   const params = new URLSearchParams({ section: selectedSectionKey });
   const search = tableState.search.trim();
   if (search) params.set("search", search);
+  if (tableState.timeRange && tableState.timeRange !== "all") params.set("range", tableState.timeRange);
+  if (tableState.metricFilters.length) params.set("filters", JSON.stringify(tableState.metricFilters));
   history.replaceState(null, "", `/table.html?${params.toString()}`);
 }
 

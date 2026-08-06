@@ -80,7 +80,7 @@ export function renderProcurementOriginatorDashboard(dashboard, ui) {
 
       <section class="specialty-record-section specialty-panel" aria-label="集采原研药品明细">
         <div class="specialty-panel-heading"><div><span class="eyebrow">药品明细</span><h2>重点品种明细</h2></div><p>展示所选时段销售靠前的 ${analysis.products.length} 个品种</p></div>
-        ${renderRecordsTable(analysis.products, analysis.periodLabel)}
+        ${renderRecordsTable(analysis.products, analysis.periodLabel, ui, "procurement")}
       </section>
     </main>
   `;
@@ -159,7 +159,7 @@ export function renderHivDashboard(dashboard, ui) {
 
       <section class="specialty-record-section specialty-panel" aria-label="HIV重点药品明细">
         <div class="specialty-panel-heading"><div><span class="eyebrow">品种贡献</span><h2>重点药品销售明细</h2></div><p>${analysis.periodLabel}销售贡献前 ${analysis.products.length} 个品种</p></div>
-        ${renderRecordsTable(analysis.products, analysis.periodLabel)}
+        ${renderRecordsTable(analysis.products, analysis.periodLabel, ui, "hiv")}
       </section>
     </main>
   `;
@@ -189,7 +189,7 @@ function getRangeAnalysis(dashboard, ui, categoryKey = "categories") {
     totalSales: sumValues(trend.map((item) => item.sales)),
     brands: rankEntries(dashboard.brands),
     categories: rankEntries(dashboard[categoryKey]),
-    products: rankEntries(dashboard.products).slice(0, 8),
+    products: rankEntries(dashboard.products),
     collectionWatch: (dashboard.collectionWatch || []).filter((item) => Number(item.year) >= startYear && Number(item.year) <= endYear)
   };
 }
@@ -287,14 +287,119 @@ function renderProductList(products) {
     .join("")}</div>`;
 }
 
-function renderRecordsTable(products, periodLabel) {
-  return `<div class="table-wrap specialty-record-table"><table><thead><tr><th>药品名称</th><th>厂牌</th><th>药品类别</th><th>${escapeHtml(periodLabel)}销售</th></tr></thead><tbody>${products.length
-    ? products
-        .map(
-          (item) => `<tr><th scope="row">${escapeHtml(item.name)}</th><td>${escapeHtml(item.brand || "/")}</td><td>${escapeHtml(item.category || "/")}</td><td><strong>${formatAmount(item.value)}</strong> 万元</td></tr>`
-        )
-        .join("")
-    : '<tr><td colspan="4"><div class="empty-state">所选时段暂无药品明细</div></td></tr>'}</tbody></table></div>`;
+function renderRecordsTable(products, periodLabel, ui, prefix) {
+  const filteredProducts = getFilteredSpecialtyProducts(products, ui);
+  const pageSize = Math.max(1, Number(ui.recordPageSize) || 8);
+  const pageCount = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+  const currentPage = Math.min(Math.max(1, Number(ui.recordPage) || 1), pageCount);
+  ui.recordPage = currentPage;
+  const startIndex = (currentPage - 1) * pageSize;
+  const displayed = filteredProducts.slice(startIndex, startIndex + pageSize);
+  const displayStart = filteredProducts.length ? startIndex + 1 : 0;
+  const displayEnd = startIndex + displayed.length;
+
+  return `
+    <form id="${prefix}RecordSearchForm" class="specialty-record-search">
+      <label><i data-lucide="search"></i><input name="specialtyRecordSearch" value="${escapeHtml(ui.recordSearch || "")}" placeholder="检索药品名称、厂牌、类别" aria-label="检索${prefix === "hiv" ? "HIV" : "集采原研"}药品明细" /></label>
+      <button class="button button-ghost" type="submit"><i data-lucide="search"></i><span>检索</span></button>
+    </form>
+    <div class="specialty-record-meta">显示第 ${displayStart}-${displayEnd} 条，共 ${filteredProducts.length} 条（全部 ${products.length} 条）</div>
+    <div class="table-wrap specialty-record-table"><table><thead><tr>${renderSpecialtyTableHeader("药品名称", "name", prefix, ui)}${renderSpecialtyTableHeader("厂牌", "brand", prefix, ui, renderSpecialtyHeaderFilter(products, ui, prefix, "brand", "厂牌", "全部厂牌"))}${renderSpecialtyTableHeader("药品类别", "category", prefix, ui, renderSpecialtyHeaderFilter(products, ui, prefix, "category", "药品类别", "全部类别"))}${renderSpecialtyTableHeader(`${escapeHtml(periodLabel)}销售`, "value", prefix, ui)}</tr></thead><tbody>${displayed.length
+      ? displayed
+          .map(
+            (item) => `<tr><th scope="row">${escapeHtml(item.name)}</th><td>${escapeHtml(item.brand || "/")}</td><td>${escapeHtml(item.category || "/")}</td><td><strong>${formatAmount(item.value)}</strong> 万元</td></tr>`
+          )
+          .join("")
+      : '<tr><td colspan="4"><div class="empty-state">未找到匹配的药品明细</div></td></tr>'}</tbody></table></div>
+    ${renderSpecialtyPagination(currentPage, pageCount, filteredProducts.length, prefix)}
+  `;
+}
+
+function getFilteredSpecialtyProducts(products, ui) {
+  const search = String(ui.recordSearch || "").trim().toLowerCase();
+  const filtered = products.filter((item) => {
+    const matchesSearch = !search || [item.name, item.brand, item.category].join(" ").toLowerCase().includes(search);
+    const matchesBrand = !ui.recordBrand || item.brand === ui.recordBrand;
+    const matchesCategory = !ui.recordCategory || item.category === ui.recordCategory;
+    return matchesSearch && matchesBrand && matchesCategory;
+  });
+
+  if (!ui.recordSortKey) return filtered;
+  return [...filtered].sort((left, right) => {
+    const result = compareSpecialtyValues(left[ui.recordSortKey], right[ui.recordSortKey]);
+    return ui.recordSortDirection === "asc" ? result : -result;
+  });
+}
+
+function compareSpecialtyValues(leftValue, rightValue) {
+  const leftEmpty = leftValue === undefined || leftValue === null || leftValue === "";
+  const rightEmpty = rightValue === undefined || rightValue === null || rightValue === "";
+  if (leftEmpty && rightEmpty) return 0;
+  if (leftEmpty) return 1;
+  if (rightEmpty) return -1;
+  if (typeof leftValue === "number" && typeof rightValue === "number") return leftValue - rightValue;
+  return String(leftValue).localeCompare(String(rightValue), "zh-CN", { numeric: true });
+}
+
+function getSpecialtyFilterValues(products, key) {
+  return [...new Set(products.map((item) => String(item[key] || "").trim()).filter(Boolean))].sort((left, right) => left.localeCompare(right, "zh-CN"));
+}
+
+function renderSpecialtyOptions(values, selectedValue, emptyLabel) {
+  return [`<option value="">${emptyLabel}</option>`]
+    .concat(
+      values.map((value) => {
+        const escaped = escapeHtml(value);
+        return `<option value="${escaped}"${value === selectedValue ? " selected" : ""}>${escaped}</option>`;
+      })
+    )
+    .join("");
+}
+
+function renderSpecialtyHeaderFilter(products, ui, prefix, key, label, emptyLabel) {
+  const selectedValue = key === "brand" ? ui.recordBrand : ui.recordCategory;
+  return `<span class="header-filter-control${selectedValue ? " is-active" : ""}"><i data-lucide="filter"></i><select data-specialty-header-filter="${prefix}" data-specialty-filter-key="${key}" aria-label="按${label}筛选">${renderSpecialtyOptions(getSpecialtyFilterValues(products, key), selectedValue, emptyLabel)}</select></span>`;
+}
+
+function renderSpecialtyTableHeader(label, sortKey, prefix, ui, filterControl = "") {
+  const isCurrent = ui.recordSortKey === sortKey;
+  const icon = isCurrent ? (ui.recordSortDirection === "asc" ? "arrow-up" : "arrow-down") : "arrow-up-down";
+  return `<th><div class="table-header-content"><button class="sort-button" type="button" data-specialty-record-sort="${prefix}" data-specialty-sort-key="${sortKey}" aria-label="按${label}排序"><span>${label}</span><i data-lucide="${icon}"></i></button>${filterControl}</div></th>`;
+}
+
+function renderSpecialtyPagination(currentPage, pageCount, rowCount, prefix) {
+  if (!rowCount) return "";
+  return `
+    <nav class="specialty-record-pagination" aria-label="药品明细分页">
+      <div class="specialty-pagination-buttons">
+        <button class="button button-ghost specialty-page-button" type="button" data-specialty-record="${prefix}" data-specialty-page="1"${currentPage === 1 ? " disabled" : ""} aria-label="首页"><i data-lucide="chevrons-left"></i></button>
+        <button class="button button-ghost specialty-page-button" type="button" data-specialty-record="${prefix}" data-specialty-page="${currentPage - 1}"${currentPage === 1 ? " disabled" : ""} aria-label="上一页"><i data-lucide="chevron-left"></i></button>
+        ${getSpecialtyPaginationItems(currentPage, pageCount)
+          .map((item) =>
+            item === "…"
+              ? '<span class="specialty-page-ellipsis" aria-hidden="true">…</span>'
+              : `<button class="button button-ghost specialty-page-number${item === currentPage ? " is-active" : ""}" type="button" data-specialty-record="${prefix}" data-specialty-page="${item}"${item === currentPage ? ' aria-current="page"' : ""}>${item}</button>`
+          )
+          .join("")}
+        <button class="button button-ghost specialty-page-button" type="button" data-specialty-record="${prefix}" data-specialty-page="${currentPage + 1}"${currentPage === pageCount ? " disabled" : ""} aria-label="下一页"><i data-lucide="chevron-right"></i></button>
+        <button class="button button-ghost specialty-page-button" type="button" data-specialty-record="${prefix}" data-specialty-page="${pageCount}"${currentPage === pageCount ? " disabled" : ""} aria-label="末页"><i data-lucide="chevrons-right"></i></button>
+      </div>
+      <form id="${prefix}RecordPageJumpForm" class="specialty-page-jump"><label>跳至 <input name="specialtyRecordPage" type="number" min="1" max="${pageCount}" value="${currentPage}" inputmode="numeric" aria-label="跳转页码" /> 页</label><button class="button button-ghost" type="submit">确定</button><small>共 ${pageCount} 页</small></form>
+    </nav>
+  `;
+}
+
+function getSpecialtyPaginationItems(currentPage, pageCount) {
+  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+  const pages = new Set([1, pageCount, currentPage - 1, currentPage, currentPage + 1]);
+  if (currentPage <= 3) [2, 3, 4].forEach((page) => pages.add(page));
+  if (currentPage >= pageCount - 2) [pageCount - 3, pageCount - 2, pageCount - 1].forEach((page) => pages.add(page));
+  const sorted = [...pages].filter((page) => page >= 1 && page <= pageCount).sort((left, right) => left - right);
+  return sorted.reduce((items, page, index) => {
+    if (index && page - sorted[index - 1] > 1) items.push("…");
+    items.push(page);
+    return items;
+  }, []);
 }
 
 function getChangePercent(firstValue, lastValue) {

@@ -3,9 +3,9 @@ import { tableSectionOrder } from "../config/dashboardConfig.js";
 const HIDDEN_TABLE_SECTION_KEYS = new Set(["weeklyNewArchived", "partnerCommunication", "drugScore"]);
 
 const POOL_SERIES = [
-  { key: "newDrugCount", label: "上市新药数", color: "#0f766e" },
-  { key: "landedSichuanCount", label: "落地四川数", color: "#245b89" },
-  { key: "southwestArchivedCount", label: "国药西南建档数", color: "#b7791f" }
+  { key: "newDrugCount", label: "上市新药数", color: "#4dbbd5" },
+  { key: "landedSichuanCount", label: "落地四川数", color: "#3c5488" },
+  { key: "southwestArchivedCount", label: "国药西南建档数", color: "#e69f00" }
 ];
 
 const SUPPORT_DETAIL_COLUMNS = [
@@ -32,13 +32,13 @@ const PROGRESS_DETAIL_COLUMNS = [
 ];
 
 const PROGRESS_BUCKETS = [
-  { label: "无联系人", match: "四、未合作/无联系人", color: "#245b89" },
-  { label: "无法动作", match: "一、无法动作", color: "#b42318" },
-  { label: "沟通建档", match: "三、沟通中（待定）", color: "#0f766e" },
-  { label: "等待建档", match: "二、等待建档", color: "#b7791f" },
-  { label: "商务不建议/DTP", match: "六、商务不建议/只销售DTP药房品种", color: "#6b5b95" },
-  { label: "需求建档", match: "五、需求建档", color: "#2f7d32" },
-  { label: "调货品种", match: "七、调货品种", color: "#8a5a2b" }
+  { label: "无联系人", match: "四、未合作/无联系人", color: "#7e8fa6" },
+  { label: "无法动作", match: "一、无法动作", color: "#c9785b" },
+  { label: "沟通建档", match: "三、沟通中（待定）", color: "#4dbbd5" },
+  { label: "等待建档", match: "二、等待建档", color: "#e69f00" },
+  { label: "商务不建议/DTP", match: "六、商务不建议/只销售DTP药房品种", color: "#3c5488" },
+  { label: "需求建档", match: "五、需求建档", color: "#6c86a5" },
+  { label: "调货品种", match: "七、调货品种", color: "#d98c3b" }
 ];
 
 const timeFilterValues = new Map();
@@ -47,7 +47,7 @@ export function renderTableCards(container, sections = [], onOpen) {
   container.replaceChildren();
 
   sortTableSectionsByDisplayOrder(sections)
-    .filter(shouldShowTableSection)
+    .filter((section) => shouldShowTableSection(section) && !isInnovativeDrugPool(section))
     .forEach((section) => {
       if (isNeedLeaderSupport(section)) {
         container.append(createNeedLeaderSupportCard(section, onOpen));
@@ -89,6 +89,12 @@ export function renderTableCards(container, sections = [], onOpen) {
 
       heading.append(titleWrap, button);
       card.append(heading);
+
+      if (isArchivedProducts(section)) {
+        card.append(createArchivedProductsContent(section));
+        container.append(card);
+        return;
+      }
 
       const metrics = createMetrics(section);
       card.append(metrics);
@@ -184,55 +190,49 @@ export function getDisplayValue(row, column) {
   return value;
 }
 
-function createInnovativeDrugPoolCard(section, onOpen) {
-  const card = document.createElement("article");
-  card.className = "table-card is-innovative-pool";
-  card.id = `card-${section.key}`;
-  const body = document.createElement("div");
-  body.className = "innovative-pool-body";
+export function getInnovativePoolMonths(section) {
+  if (!section?.rows?.length) return [];
+  const months = getSectionMonths(section);
+  const [startYear, startMonth] = months[0].split("-").map(Number);
+  const [endYear, endMonth] = months.at(-1).split("-").map(Number);
+  const result = [];
+  let year = startYear;
+  let month = startMonth;
 
-  const heading = document.createElement("div");
-  heading.className = "panel-heading pool-heading";
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    result.push(`${year}-${String(month).padStart(2, "0")}`);
+    month += 1;
+    if (month > 12) {
+      year += 1;
+      month = 1;
+    }
+  }
 
-  const titleWrap = document.createElement("div");
-  const title = document.createElement("h2");
-  title.textContent = section.title;
-  const source = document.createElement("p");
-  source.className = "source-note";
-  source.textContent = section.source?.sheetName ? `来源：${section.source.sheetName}` : "未识别到对应板块";
-  titleWrap.append(title, source);
-
-  const actions = document.createElement("div");
-  actions.className = "panel-actions pool-panel-actions";
-
-  const timeFilter = createTimeFilterControl(section, section.key, "筛选上市新药品种池时间", (value) => {
-    renderInnovativePoolBody(body, section, value);
-  });
-
-  const button = document.createElement("button");
-  button.className = "icon-button";
-  button.type = "button";
-  button.title = "查看完整表格";
-  button.setAttribute("aria-label", `查看${section.title}`);
-  button.innerHTML = '<i data-lucide="arrow-right"></i>';
-  button.addEventListener("click", () => onOpen(section.key));
-
-  actions.append(timeFilter.node, button);
-  heading.append(titleWrap, actions);
-  card.append(heading);
-
-  card.append(body);
-  renderInnovativePoolBody(body, section, timeFilter.value);
-
-  return card;
+  return result;
 }
 
-function renderInnovativePoolBody(body, section, filterValue) {
+export function getInnovativePoolRangeAnalysis(section, startMonth, endMonth) {
+  const months = getInnovativePoolMonths(section);
+  const fallbackMonth = months.at(-1) || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+  const start = String(startMonth || fallbackMonth);
+  const end = String(endMonth || fallbackMonth);
+  const rangeStart = start <= end ? start : end;
+  const rangeEnd = start <= end ? end : start;
+  const trendRows = getInnovativeTrendRows(section, `range:${rangeStart}:${rangeEnd}`);
+  const totals = summarizeTrendRows(trendRows);
+  const peakMonth = [...trendRows].sort((left, right) => right.newDrugCount - left.newDrugCount || right.month.localeCompare(left.month))[0] || null;
+  const landedRate = totals.newDrugCount ? Math.round((totals.landedSichuanCount / totals.newDrugCount) * 100) : 0;
+  const archiveRate = totals.landedSichuanCount ? Math.round((totals.southwestArchivedCount / totals.landedSichuanCount) * 100) : 0;
+
+  return { startMonth: rangeStart, endMonth: rangeEnd, trendRows, totals, peakMonth, landedRate, archiveRate };
+}
+
+export function renderInnovativePoolOverview(body, analysis) {
+  if (!body || !analysis) return;
   body.replaceChildren();
+  body.classList.add("innovation-pool-body");
 
-  const trendRows = getInnovativeTrendRows(section, filterValue);
-
-  if (!trendRows.length) {
+  if (!analysis.trendRows.length) {
     const empty = document.createElement("div");
     empty.className = "empty-state empty-state-large";
     empty.textContent = "暂无可按获批时间统计的品种数据";
@@ -240,7 +240,11 @@ function renderInnovativePoolBody(body, section, filterValue) {
     return;
   }
 
-  body.append(createPoolMetrics(summarizeTrendRows(trendRows)), createPoolChart(trendRows));
+  const trendLayout = document.createElement("div");
+  trendLayout.className = "innovation-trend-layout";
+  trendLayout.append(createPoolChart(analysis.trendRows), createInnovationPoolHighlights(analysis));
+
+  body.append(createPoolMetrics(analysis), trendLayout);
 }
 
 function createNeedLeaderSupportCard(section, onOpen) {
@@ -267,7 +271,7 @@ function renderNeedLeaderSupportBody(body, section, filterValue) {
   const otherRows = getOtherUnarchivedLandingRows(rows);
 
   body.append(
-    createLeaderSupportMetrics(getLeaderSupportMetrics(rows)),
+    createLeaderSupportMetrics(getLeaderSupportMetrics(rows), section, filterValue),
     createInsightTable({
       title: "重点品种明细",
       rows: featuredRows,
@@ -287,17 +291,19 @@ function renderNeedLeaderSupportBody(body, section, filterValue) {
   );
 }
 
-function createLeaderSupportMetrics(metrics) {
+function createLeaderSupportMetrics(metrics, section, filterValue) {
   const wrap = document.createElement("div");
   wrap.className = "leader-metrics";
 
   [
-    ["需领导协助品种数", metrics.total, "leader-metric-total"],
-    ["落地四川数", metrics.landedCount, "leader-metric-landed"],
-    ["四星/五星品种数", metrics.focusCount, "leader-metric-focus"]
-  ].forEach(([label, value, className]) => {
-    const item = document.createElement("div");
-    item.className = `leader-metric ${className}`;
+    ["需领导协助品种数", metrics.total, "leader-metric-total", []],
+    ["落地四川数", metrics.landedCount, "leader-metric-landed", [{ field: "landedInSichuan", value: "是", mode: "includes" }]],
+    ["四星/五星品种数", metrics.focusCount, "leader-metric-focus", [{ field: "rating", value: "4", mode: "ratingAtLeast" }]]
+  ].forEach(([label, value, className, filters]) => {
+    const item = document.createElement("a");
+    item.className = `leader-metric metric-detail-link ${className}`;
+    item.href = buildMetricDetailUrl(section.key, { range: filterValue, filters });
+    item.title = `查看${label}明细`;
     const span = document.createElement("span");
     span.textContent = label;
     const strong = document.createElement("strong");
@@ -331,7 +337,7 @@ function renderIntroductionProgressBody(body, section, filterValue) {
   const rows = getTimeFilteredRows(section, filterValue);
   const left = document.createElement("div");
   left.className = "intro-progress-left";
-  left.append(createIntroductionRecordMetric(rows.length), createProgressBarChart(rows));
+  left.append(createIntroductionRecordMetric(rows.length, section, filterValue), createProgressBarChart(rows, section, filterValue));
 
   const right = document.createElement("div");
   right.className = "intro-progress-right";
@@ -349,9 +355,11 @@ function renderIntroductionProgressBody(body, section, filterValue) {
   body.append(left, right);
 }
 
-function createIntroductionRecordMetric(value) {
-  const metric = document.createElement("div");
-  metric.className = "intro-record-metric";
+function createIntroductionRecordMetric(value, section, filterValue) {
+  const metric = document.createElement("a");
+  metric.className = "intro-record-metric metric-detail-link";
+  metric.href = buildMetricDetailUrl(section.key, { range: filterValue });
+  metric.title = "查看新药引进沟通记录明细";
   const span = document.createElement("span");
   span.textContent = "新药引进沟通记录数";
   const strong = document.createElement("strong");
@@ -360,7 +368,7 @@ function createIntroductionRecordMetric(value) {
   return metric;
 }
 
-function createProgressBarChart(rows) {
+function createProgressBarChart(rows, section, filterValue) {
   const shell = document.createElement("section");
   shell.className = "progress-chart-shell";
 
@@ -377,8 +385,13 @@ function createProgressBarChart(rows) {
   const list = document.createElement("div");
   list.className = "progress-bars";
   counts.forEach((item) => {
-    const row = document.createElement("div");
-    row.className = "progress-bar-row";
+    const row = document.createElement("a");
+    row.className = "progress-bar-row metric-detail-link";
+    row.href = buildMetricDetailUrl(section.key, {
+      range: filterValue,
+      filters: [{ field: "progress", value: item.match, mode: "includes" }]
+    });
+    row.title = `查看“${item.label}”品种明细`;
     row.style.setProperty("--bar-color", item.color);
 
     const label = document.createElement("span");
@@ -432,25 +445,71 @@ function createTimeFilteredHeading(section, onOpen, ariaLabel, onFilterChange) {
 }
 
 function createTimeFilterControl(section, filterKey, ariaLabel, onChange) {
-  const filterWrap = document.createElement("label");
-  filterWrap.className = "pool-filter-wrap";
-  filterWrap.innerHTML = '<i data-lucide="calendar-range"></i><span>时间</span>';
+  const filterWrap = document.createElement("div");
+  filterWrap.className = "pool-filter-wrap pool-range-filter-wrap";
+  filterWrap.setAttribute("aria-label", ariaLabel);
 
-  const filter = document.createElement("select");
-  filter.className = "pool-filter";
-  filter.setAttribute("aria-label", ariaLabel);
-  const options = getTimeFilterOptions(section);
-  const selectedValue = getSelectedTimeFilter(options, filterKey);
+  const icon = document.createElement("i");
+  icon.dataset.lucide = "calendar-range";
+  const label = document.createElement("span");
+  label.className = "pool-filter-label";
+  label.textContent = "时间";
+  filterWrap.append(icon, label);
 
-  options.forEach((option) => filter.append(new Option(option.label, option.value)));
-  filter.value = selectedValue;
-  filter.addEventListener("change", () => {
-    timeFilterValues.set(filterKey, filter.value);
-    onChange(filter.value);
+  const years = getTimeFilterYears(section);
+  const range = getSelectedTimeRange(section, filterKey);
+  const fields = [
+    { key: "startYear", label: "开始年份", value: range.start.slice(0, 4), options: years.map((year) => [year, `${year}年`]) },
+    { key: "startMonth", label: "开始月份", value: range.start.slice(5, 7), options: getMonthOptions() },
+    { key: "endYear", label: "结束年份", value: range.end.slice(0, 4), options: years.map((year) => [year, `${year}年`]) },
+    { key: "endMonth", label: "结束月份", value: range.end.slice(5, 7), options: getMonthOptions() }
+  ];
+
+  const values = {
+    startYear: range.start.slice(0, 4),
+    startMonth: range.start.slice(5, 7),
+    endYear: range.end.slice(0, 4),
+    endMonth: range.end.slice(5, 7)
+  };
+
+  const applyRange = (changedKey, value) => {
+    values[changedKey] = value;
+    let start = `${values.startYear}-${values.startMonth}`;
+    let end = `${values.endYear}-${values.endMonth}`;
+    if (start > end) {
+      if (changedKey.startsWith("start")) {
+        end = start;
+        values.endYear = values.startYear;
+        values.endMonth = values.startMonth;
+      } else {
+        start = end;
+        values.startYear = values.endYear;
+        values.startMonth = values.endMonth;
+      }
+    }
+    const nextValue = `range:${start}:${end}`;
+    timeFilterValues.set(filterKey, nextValue);
+    onChange(nextValue);
+  };
+
+  fields.forEach((field, index) => {
+    if (index === 2) {
+      const divider = document.createElement("b");
+      divider.textContent = "至";
+      filterWrap.append(divider);
+    }
+
+    const select = document.createElement("select");
+    select.className = "pool-range-filter";
+    select.dataset.timeRangeField = field.key;
+    select.setAttribute("aria-label", `${ariaLabel}${field.label}`);
+    field.options.forEach(([value, optionLabel]) => select.append(new Option(optionLabel, value)));
+    select.value = field.value;
+    select.addEventListener("change", () => applyRange(field.key, select.value));
+    filterWrap.append(select);
   });
 
-  filterWrap.append(filter);
-  return { node: filterWrap, value: selectedValue };
+  return { node: filterWrap, value: `range:${range.start}:${range.end}` };
 }
 
 function createInsightTable({ title, rows, columns, section, className = "", emptyText = "暂无数据" }) {
@@ -520,26 +579,67 @@ function createInsightTable({ title, rows, columns, section, className = "", emp
   return panel;
 }
 
-function createPoolMetrics(totals) {
+function createPoolMetrics(analysis) {
   const wrap = document.createElement("div");
   wrap.className = "pool-metrics";
+  const range = `range:${analysis.startMonth}:${analysis.endMonth}`;
 
   [
-    ["上市新药数目", totals.newDrugCount, "pool-metric-new"],
-    ["落地四川数", totals.landedSichuanCount, "pool-metric-landed"],
-    ["国药西南建档数", totals.southwestArchivedCount, "pool-metric-archived"]
-  ].forEach(([label, value, className]) => {
-    const item = document.createElement("div");
-    item.className = `pool-metric ${className}`;
+    ["上市创新药品种", analysis.totals.newDrugCount, "pool-metric-new", "个", []],
+    ["落地四川", analysis.totals.landedSichuanCount, "pool-metric-landed", "个", [{ field: "landedInSichuan", value: "是", mode: "includes" }]],
+    ["国药西南建档", analysis.totals.southwestArchivedCount, "pool-metric-archived", "个", [{ field: "southwestArchived", value: "是", mode: "includes" }]],
+    ["落地品种建档率", analysis.archiveRate, "pool-metric-rate", "%", [{ field: "landedInSichuan", value: "是", mode: "includes" }, { field: "southwestArchived", value: "是", mode: "includes" }]]
+  ].forEach(([label, value, className, unit, filters]) => {
+    const item = document.createElement("a");
+    item.className = `pool-metric metric-detail-link ${className}`;
+    item.href = buildMetricDetailUrl("innovativeDrugPool", { range, filters });
+    item.title = `查看${label}明细`;
     const span = document.createElement("span");
     span.textContent = label;
     const strong = document.createElement("strong");
-    strong.textContent = value;
+    strong.innerHTML = `${value}<em>${unit}</em>`;
     item.append(span, strong);
     wrap.append(item);
   });
 
   return wrap;
+}
+
+function createInnovationPoolHighlights(analysis) {
+  const periodLabel = analysis.startMonth === analysis.endMonth ? getMonthLabel(analysis.startMonth) : `${getMonthLabel(analysis.startMonth)}—${getMonthLabel(analysis.endMonth)}`;
+  const peakMonthLabel = analysis.peakMonth ? getMonthLabel(analysis.peakMonth.month) : "暂无数据";
+  const peakMonthValue = analysis.peakMonth?.newDrugCount || 0;
+  const items = [
+    { icon: "calendar-days", label: "上市高峰月", detail: peakMonthLabel, value: peakMonthValue, unit: "个" },
+    { icon: "map-pin", label: "四川落地率", detail: `累计落地四川 ${analysis.totals.landedSichuanCount} 个`, value: analysis.landedRate, unit: "%" },
+    { icon: "folder-check", label: "落地品种建档率", detail: `累计建档 ${analysis.totals.southwestArchivedCount} 个`, value: analysis.archiveRate, unit: "%" }
+  ];
+
+  const aside = document.createElement("aside");
+  aside.className = "innovation-trend-insights";
+  aside.setAttribute("aria-label", `${periodLabel}重要结论`);
+  aside.innerHTML = `
+    <div class="innovation-trend-insights-heading">
+      <span class="eyebrow">重要结论</span>
+      <h3>${periodLabel}经营要点</h3>
+      <p>累计上市 <strong>${analysis.totals.newDrugCount}</strong> 个创新药品种</p>
+    </div>
+    <ol class="innovation-trend-insight-list">
+      ${items
+        .map(
+          (item) => `
+            <li>
+              <span class="innovation-trend-insight-icon"><i data-lucide="${item.icon}"></i></span>
+              <div><small>${item.label}</small><strong>${item.detail}</strong></div>
+              <em>${item.value}<span>${item.unit}</span></em>
+            </li>
+          `
+        )
+        .join("")}
+    </ol>
+    <p class="innovation-trend-insight-note">统计口径随所选时段同步更新，便于快速识别上市、落地与建档进展。</p>
+  `;
+  return aside;
 }
 
 function createPoolChart(trendRows) {
@@ -572,14 +672,14 @@ function createPoolChart(trendRows) {
 }
 
 function createPoolChartSvg(trendRows) {
-  const showXAxis = trendRows.length <= 12;
-  const showPointLabels = trendRows.length <= 12;
-  const width = Math.max(1080, trendRows.length * (showXAxis ? 72 : 24));
-  const height = 310;
+  const showXAxis = true;
+  const showPointLabels = true;
+  const width = Math.max(1080, trendRows.length * 92);
+  const height = 334;
   const margin = {
     top: 28,
     right: 28,
-    bottom: showXAxis ? 52 : 28,
+    bottom: 68,
     left: 46
   };
   const chartWidth = width - margin.left - margin.right;
@@ -636,13 +736,22 @@ function createPoolChartSvg(trendRows) {
     trendRows.forEach((row, index) => {
       const label = createSvgElement("text", {
         x: xFor(index),
-        y: height - 18,
+        y: height - 34,
         class: "pool-axis-label",
         "text-anchor": "middle"
       });
-      label.textContent = getShortMonthLabel(row.month);
+      label.textContent = getMonthLabel(row.month);
       svg.append(label);
     });
+
+    const axisTitle = createSvgElement("text", {
+      x: width / 2,
+      y: height - 8,
+      class: "pool-axis-title",
+      "text-anchor": "middle"
+    });
+    axisTitle.textContent = "获批月份";
+    svg.append(axisTitle);
   }
 
   const seriesPointSets = POOL_SERIES.map((series, seriesIndex) => ({
@@ -754,37 +863,31 @@ function getPreferredLabelOffset(seriesIndex) {
   return [14, 12, 10][seriesIndex] || 12;
 }
 
-function getTimeFilterOptions(section) {
+function getTimeFilterYears(section) {
   const months = getSectionMonths(section);
-  if (!months.length) {
-    return [{ value: "all", label: "全部时间" }];
-  }
-
-  const years = [...new Set(months.map((month) => month.slice(0, 4)))].sort((left, right) => Number(right) - Number(left));
-  const options = [{ value: "all", label: "全部时间" }];
-
-  if (months.length > 12) options.push({ value: "recent:12", label: "近12个月" });
-  if (months.length > 6) options.push({ value: "recent:6", label: "近6个月" });
-
-  years.forEach((year) => {
-    options.push({ value: `year:${year}`, label: `${year}年` });
-  });
-
-  [...months].reverse().forEach((month) => {
-    options.push({ value: `month:${month}`, label: getMonthLabel(month) });
-  });
-
-  return options;
+  const years = [...new Set(months.map((month) => month.slice(0, 4)))].sort((left, right) => Number(left) - Number(right));
+  return years.length ? years : [String(new Date().getFullYear())];
 }
 
-function getSelectedTimeFilter(options, filterKey) {
-  const currentValue = timeFilterValues.get(filterKey) || "";
-  if (!options.some((option) => option.value === currentValue)) {
-    const fallback = options.find((option) => option.value.startsWith("year:"))?.value || options[0]?.value || "all";
-    timeFilterValues.set(filterKey, fallback);
-  }
+function getMonthOptions() {
+  return Array.from({ length: 12 }, (_, index) => {
+    const month = String(index + 1).padStart(2, "0");
+    return [month, `${index + 1}月`];
+  });
+}
 
-  return timeFilterValues.get(filterKey) || "all";
+function getSelectedTimeRange(section, filterKey) {
+  const months = getSectionMonths(section);
+  const fallbackStart = months[0] || `${new Date().getFullYear()}-01`;
+  const fallbackEnd = months.at(-1) || fallbackStart;
+  const current = String(timeFilterValues.get(filterKey) || "");
+  const matched = current.match(/^range:(\d{4}-\d{2}):(\d{4}-\d{2})$/);
+  const availableYears = new Set(getTimeFilterYears(section));
+  const start = matched?.[1] && availableYears.has(matched[1].slice(0, 4)) ? matched[1] : fallbackStart;
+  const end = matched?.[2] && availableYears.has(matched[2].slice(0, 4)) ? matched[2] : fallbackEnd;
+  const normalized = start <= end ? { start, end } : { start: end, end: start };
+  timeFilterValues.set(filterKey, `range:${normalized.start}:${normalized.end}`);
+  return normalized;
 }
 
 function getSelectedTimeFilterValue(filterKey) {
@@ -792,6 +895,7 @@ function getSelectedTimeFilterValue(filterKey) {
 }
 
 function getInnovativeTrendRows(section, filterValue) {
+  if (!section?.rows?.length) return [];
   const months = getSelectedMonths(getSectionMonths(section), filterValue);
   const buckets = new Map(
     months.map((month) => [
@@ -831,6 +935,10 @@ function summarizeTrendRows(rows) {
 
 function getSelectedMonths(months, filterValue) {
   if (!months.length) return [];
+  if (filterValue?.startsWith("range:")) {
+    const [start, end] = filterValue.slice("range:".length).split(":");
+    return months.filter((month) => month >= start && month <= end);
+  }
   if (filterValue?.startsWith("month:")) {
     const month = filterValue.slice("month:".length);
     return months.includes(month) ? [month] : [];
@@ -895,24 +1003,6 @@ function comparePriorityRows(left, right) {
   const starDiff = getStarCount(right) - getStarCount(left);
   if (starDiff !== 0) return starDiff;
   return getApprovalTime(right) - getApprovalTime(left);
-}
-
-function compareProgressHighlightRows(left, right) {
-  const groupDiff = getProgressSortGroup(left) - getProgressSortGroup(right);
-  if (groupDiff !== 0) return groupDiff;
-  return getApprovalTime(right) - getApprovalTime(left);
-}
-
-function getProgressSortGroup(row) {
-  const stars = getStarCount(row);
-  const year = getApprovalYear(row);
-  if (stars >= 5 && year === 2026) return 0;
-  if (stars >= 5 && year === 2025) return 1;
-  if (stars === 4 && year === 2026) return 2;
-  if (stars === 4 && year === 2025) return 3;
-  if (stars >= 5 && year === 2024) return 4;
-  if (stars === 4 && year === 2024) return 5;
-  return 6;
 }
 
 function matchesProgressBucket(row, matchText) {
@@ -981,8 +1071,12 @@ function createMetrics(section) {
       ];
 
   items.forEach(([label, value]) => {
-    const item = document.createElement("div");
-    item.className = "mini-metric";
+    const item = document.createElement("a");
+    item.className = "mini-metric metric-detail-link";
+    item.href = buildMetricDetailUrl(section.key, {
+      filters: label.includes("四/五星") ? [{ field: "rating", value: "4", mode: "ratingAtLeast" }] : []
+    });
+    item.title = `查看${label}明细`;
     const strong = document.createElement("strong");
     strong.textContent = value;
     const span = document.createElement("span");
@@ -1032,7 +1126,159 @@ function createPreviewTable(section) {
   return tableWrap;
 }
 
-function createArchivedProductsTable(section) {
+function createArchivedProductsContent(section) {
+  const content = document.createElement("div");
+  content.className = "archived-products-content";
+  const state = { keyword: "", year: "all", company: "all", rating: "all" };
+
+  const filters = document.createElement("div");
+  filters.className = "archived-filter-bar";
+  filters.setAttribute("aria-label", "已建档品种筛选器");
+
+  const keyword = document.createElement("input");
+  keyword.type = "search";
+  keyword.placeholder = "搜索品种、厂牌、采购";
+  keyword.setAttribute("aria-label", "搜索已建档品种");
+  keyword.addEventListener("input", (event) => {
+    state.keyword = event.target.value;
+    renderResults();
+  });
+
+  const year = createArchivedFilterSelect("获批年份", ["all", ...getArchivedFilterYears(section)], (value) => {
+    state.year = value;
+    renderResults();
+  });
+  const company = createArchivedFilterSelect("全部厂牌", ["all", ...getArchivedFilterCompanies(section)], (value) => {
+    state.company = value;
+    renderResults();
+  });
+  const rating = createArchivedFilterSelect("全部重点评价", ["all", "5", "4"], (value) => {
+    state.rating = value;
+    renderResults();
+  });
+  rating.querySelector('option[value="all"]').textContent = "全部重点评价";
+  rating.querySelector('option[value="5"]').textContent = "仅五星";
+  rating.querySelector('option[value="4"]').textContent = "仅四星";
+
+  const reset = document.createElement("button");
+  reset.className = "button button-ghost archived-filter-reset";
+  reset.type = "button";
+  reset.textContent = "重置";
+  reset.addEventListener("click", () => {
+    state.keyword = "";
+    state.year = "all";
+    state.company = "all";
+    state.rating = "all";
+    keyword.value = "";
+    year.value = "all";
+    company.value = "all";
+    rating.value = "all";
+    renderResults();
+  });
+
+  filters.append(keyword, year, company, rating, reset);
+
+  const summary = document.createElement("p");
+  summary.className = "archived-filter-summary";
+  const results = document.createElement("div");
+  results.className = "archived-filter-results";
+
+  const renderResults = () => {
+    const rows = getArchivedFilteredRows(section, state);
+    const previewRows = getArchivedPreviewRows(section, rows);
+    summary.textContent = `当前筛选 ${rows.length} 条已建档记录，展示其中 ${previewRows.length} 条重点品种。`;
+    results.replaceChildren(createArchivedMetrics(section, rows));
+    if (previewRows.length) {
+      results.append(createArchivedProductsTable(section, previewRows));
+    } else {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "暂无符合筛选条件的重点品种";
+      results.append(empty);
+    }
+  };
+
+  content.append(filters, summary, results);
+  renderResults();
+  return content;
+}
+
+function compareProgressHighlightRows(left, right) {
+  const groupDiff = getProgressSortGroup(left) - getProgressSortGroup(right);
+  if (groupDiff !== 0) return groupDiff;
+  return getApprovalTime(right) - getApprovalTime(left);
+}
+
+function getProgressSortGroup(row) {
+  const stars = getStarCount(row);
+  const year = getApprovalYear(row);
+  if (stars >= 5 && year === 2026) return 0;
+  if (stars >= 5 && year === 2025) return 1;
+  if (stars === 4 && year === 2026) return 2;
+  if (stars === 4 && year === 2025) return 3;
+  if (stars >= 5 && year === 2024) return 4;
+  if (stars === 4 && year === 2024) return 5;
+  return 6;
+}
+
+function createArchivedFilterSelect(label, values, onChange) {
+  const select = document.createElement("select");
+  select.className = "archived-filter-select";
+  select.setAttribute("aria-label", label);
+  values.forEach((value) => {
+    const text = value === "all" ? label : label === "获批年份" ? `${value}年` : value;
+    select.append(new Option(text, value));
+  });
+  select.addEventListener("change", (event) => onChange(event.target.value));
+  return select;
+}
+
+function getArchivedFilterYears(section) {
+  return [...new Set(section.rows.map(getApprovalYear).filter(Boolean))].sort((left, right) => Number(right) - Number(left));
+}
+
+function getArchivedFilterCompanies(section) {
+  return [...new Set(section.rows.map((row) => getRowField(row, "companyName")).filter(Boolean))].sort((left, right) => left.localeCompare(right, "zh-CN"));
+}
+
+function getArchivedFilteredRows(section, state) {
+  const keyword = state.keyword.trim().toLowerCase();
+  return section.rows
+    .filter((row) => (state.year === "all" ? true : String(getApprovalYear(row)) === state.year))
+    .filter((row) => (state.company === "all" ? true : getRowField(row, "companyName") === state.company))
+    .filter((row) => {
+      if (state.rating === "all") return true;
+      return getStarCount(row) === Number(state.rating);
+    })
+    .filter((row) => (keyword ? Object.values(row.values || {}).join(" ").toLowerCase().includes(keyword) : true));
+}
+
+function createArchivedMetrics(section, rows) {
+  const metrics = {
+    recentArchivedCount: rows.filter(isRecentArchivedProduct).length,
+    highRatingCount: rows.filter(isFeaturedArchivedProduct).length
+  };
+  const wrap = document.createElement("div");
+  wrap.className = "mini-metrics archived-metrics";
+  [
+    ["2025至2026年已建档品种数目", metrics.recentArchivedCount, []],
+    ["四/五星品种", metrics.highRatingCount, [{ field: "rating", value: "4", mode: "ratingAtLeast" }]]
+  ].forEach(([label, value, filters]) => {
+    const item = document.createElement("a");
+    item.className = "mini-metric metric-detail-link";
+    item.href = buildMetricDetailUrl(section.key, { filters });
+    item.title = `查看${label}明细`;
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    const span = document.createElement("span");
+    span.textContent = label;
+    item.append(strong, span);
+    wrap.append(item);
+  });
+  return wrap;
+}
+
+function createArchivedProductsTable(section, previewRows = getArchivedPreviewRows(section)) {
   const tableWrap = document.createElement("div");
   tableWrap.className = "table-wrap preview-table archived-preview-table";
 
@@ -1051,7 +1297,7 @@ function createArchivedProductsTable(section) {
   table.append(thead);
 
   const tbody = document.createElement("tbody");
-  getArchivedPreviewRows(section).forEach((row, index) => {
+  previewRows.forEach((row, index) => {
     const tr = document.createElement("tr");
     columns.forEach((column) => {
       const td = document.createElement("td");
@@ -1102,8 +1348,8 @@ function getArchivedPreviewColumns() {
   ];
 }
 
-function getArchivedPreviewRows(section) {
-  return section.rows
+function getArchivedPreviewRows(section, rows = section.rows) {
+  return rows
     .filter(isFeaturedArchivedProduct)
     .sort(compareArchivedRows)
     .slice(0, 6);
@@ -1163,6 +1409,13 @@ function buildSearchUrl(sectionKey, query) {
     section: sectionKey,
     search: query
   });
+  return `/table.html?${params.toString()}`;
+}
+
+function buildMetricDetailUrl(sectionKey, { range = "", filters = [] } = {}) {
+  const params = new URLSearchParams({ section: sectionKey });
+  if (range && range !== "all") params.set("range", range);
+  if (filters.length) params.set("filters", JSON.stringify(filters));
   return `/table.html?${params.toString()}`;
 }
 

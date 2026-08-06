@@ -20,7 +20,7 @@ const SCORE_DIMENSIONS = [
   { key: "companyCapabilityScore", label: "厂牌商业化能力强弱", axisLabel: "厂牌能力" }
 ];
 
-const SERIES_COLORS = ["#0f766e", "#245b89", "#b7791f", "#8b5cf6", "#b42318", "#2f7d32"];
+const SERIES_COLORS = ["#3c5488", "#4dbbd5", "#e69f00", "#8491b4", "#d98c3b", "#7e8fa6"];
 const RANKING_COLUMNS = [
   { key: "rank", label: "排名" },
   { key: "displayName", label: "西南名称（内部品名）" },
