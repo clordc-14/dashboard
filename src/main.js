@@ -47,6 +47,9 @@ let rareDiseaseUi = {
 let procurementOriginatorUi = { startYear: null, endYear: null };
 let hivUi = { startYear: null, endYear: null };
 let dataAssistantUi = createAssistantState();
+let dataAssistantNudgeTimer;
+let dataAssistantNudgeHideTimer;
+let dataAssistantNudgeHasBeenShown = false;
 
 initializeDashboard();
 window.addEventListener("beforeprint", () => document.body.classList.add("is-printing-pdf"));
@@ -1313,13 +1316,22 @@ function bindAnalysisLauncher() {
 function bindDataAssistant() {
   document.querySelector("#dataAssistantToggle")?.addEventListener("click", () => {
     dataAssistantUi.isOpen = !dataAssistantUi.isOpen;
+    if (dataAssistantUi.isOpen) cancelDataAssistantNudge();
     renderDashboard();
     if (dataAssistantUi.isOpen) focusDataAssistantInput();
   });
 
   document.querySelector("#dataAssistantClose")?.addEventListener("click", () => {
     dataAssistantUi.isOpen = false;
+    dismissDataAssistantNudge();
     renderDashboard();
+  });
+
+  document.querySelector("#dataAssistantNudge")?.addEventListener("click", () => {
+    dataAssistantUi.isOpen = true;
+    cancelDataAssistantNudge();
+    renderDashboard();
+    focusDataAssistantInput();
   });
 
   document.querySelectorAll("[data-assistant-example]").forEach((button) => {
@@ -1331,6 +1343,52 @@ function bindDataAssistant() {
     const form = new FormData(event.currentTarget);
     submitDataAssistantQuestion(String(form.get("question") || ""));
   });
+
+  scheduleDataAssistantNudge();
+}
+
+function scheduleDataAssistantNudge() {
+  if (dataAssistantUi.isOpen) {
+    cancelDataAssistantNudge();
+    return;
+  }
+
+  if (dataAssistantUi.showNudge) {
+    if (!dataAssistantNudgeHideTimer) {
+      dataAssistantNudgeHideTimer = window.setTimeout(() => {
+        dataAssistantNudgeHideTimer = undefined;
+        if (!dataAssistantUi.isOpen && dataAssistantUi.showNudge) {
+          dataAssistantUi.showNudge = false;
+          renderDashboard();
+        }
+      }, 7000);
+    }
+    return;
+  }
+
+  if (dataAssistantNudgeTimer) return;
+  const minDelay = dataAssistantNudgeHasBeenShown ? 80000 : 16000;
+  const maxDelay = dataAssistantNudgeHasBeenShown ? 150000 : 30000;
+  const delay = minDelay + Math.round(Math.random() * (maxDelay - minDelay));
+  dataAssistantNudgeTimer = window.setTimeout(() => {
+    dataAssistantNudgeTimer = undefined;
+    if (dataAssistantUi.isOpen) return;
+    dataAssistantUi.showNudge = true;
+    dataAssistantNudgeHasBeenShown = true;
+    renderDashboard();
+  }, delay);
+}
+
+function dismissDataAssistantNudge() {
+  dataAssistantUi.showNudge = false;
+  window.clearTimeout(dataAssistantNudgeHideTimer);
+  dataAssistantNudgeHideTimer = undefined;
+}
+
+function cancelDataAssistantNudge() {
+  dismissDataAssistantNudge();
+  window.clearTimeout(dataAssistantNudgeTimer);
+  dataAssistantNudgeTimer = undefined;
 }
 
 async function submitDataAssistantQuestion(question) {
