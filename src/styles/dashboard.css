@@ -7211,7 +7211,7 @@ a.search-result-title:hover {
 
 .data-assistant-header {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 30px;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
   padding: 15px 15px 13px;
@@ -7271,15 +7271,21 @@ a.search-result-title:hover {
 }
 
 .data-assistant-close {
-  display: grid;
-  width: 30px;
+  display: inline-flex;
+  align-items: center;
+  min-width: 54px;
   height: 30px;
-  place-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 6px;
   color: #456371;
   background: transparent;
   border: 0;
   border-radius: 7px;
   cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .data-assistant-close:hover {
@@ -7288,8 +7294,8 @@ a.search-result-title:hover {
 }
 
 .data-assistant-close svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
 }
 
 .data-assistant-messages {

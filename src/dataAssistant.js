@@ -28,7 +28,7 @@ export function renderDataAssistant(ui, activeGuide) {
         <header class="data-assistant-header">
           <span class="data-assistant-avatar"><i data-lucide="bot-message-square"></i></span>
           <div><small>国药西南新药引进网</small><h2 id="dataAssistantTitle">数据助手</h2><p><i data-lucide="shield-check"></i>仅依据已存数据回答</p></div>
-          <button id="dataAssistantClose" class="data-assistant-close" type="button" aria-label="关闭数据助手"><i data-lucide="x"></i></button>
+          <button id="dataAssistantClose" class="data-assistant-close" type="button" aria-label="收起数据助手" title="收起数据助手"><span>收起</span><i data-lucide="chevron-down"></i></button>
         </header>
         <div id="dataAssistantMessages" class="data-assistant-messages" aria-live="polite">
           ${ui.messages.map(renderAssistantMessage).join("")}
@@ -44,7 +44,7 @@ export function renderDataAssistant(ui, activeGuide) {
       </section>
       ${!ui.isOpen && ui.showNudge ? '<button id="dataAssistantNudge" class="data-assistant-nudge" type="button" aria-label="打开数据助手，了解数据问题">有问题找我了解</button>' : ""}
       <button id="dataAssistantToggle" class="data-assistant-toggle" type="button" aria-expanded="${String(ui.isOpen)}" aria-controls="dataAssistantMessages" title="${ui.isOpen ? "收起数据助手" : "打开数据助手"}">
-        <i data-lucide="bot-message-square"></i><span>数据助手</span>
+        <i data-lucide="bot-message-square"></i><span>${ui.isOpen ? "收起助手" : "数据助手"}</span>
       </button>
     </div>
   `;
