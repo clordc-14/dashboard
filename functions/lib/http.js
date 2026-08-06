@@ -1,0 +1,51 @@
+export class HttpError extends Error {
+  constructor(status, message, details) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+    this.details = details;
+  }
+}
+
+export function json(body, init = {}) {
+  const headers = new Headers(init.headers || {});
+  headers.set("content-type", "application/json; charset=utf-8");
+
+  return new Response(JSON.stringify(body), {
+    ...init,
+    headers
+  });
+}
+
+export function jsonError(error) {
+  const status = Number.isInteger(error?.status) ? error.status : 500;
+  const body = {
+    error: {
+      message: status === 500 ? "Internal server error" : error.message,
+      status
+    }
+  };
+
+  if (error?.details) {
+    body.error.details = error.details;
+  }
+
+  return json(body, { status });
+}
+
+export function methodNotAllowed(allowedMethods) {
+  return json(
+    {
+      error: {
+        message: "Method not allowed",
+        status: 405
+      }
+    },
+    {
+      status: 405,
+      headers: {
+        allow: allowedMethods.join(", ")
+      }
+    }
+  );
+}
