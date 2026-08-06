@@ -9,6 +9,7 @@ export function createAssistantState() {
   return {
     isOpen: false,
     isLoading: false,
+    showNudge: false,
     messages: [
       {
         role: "assistant",
@@ -41,7 +42,8 @@ export function renderDataAssistant(ui, activeGuide) {
           <button type="submit" aria-label="发送问题"${ui.isLoading ? " disabled" : ""}><i data-lucide="${ui.isLoading ? "loader-circle" : "send-horizontal"}"></i></button>
         </form>
       </section>
-      <button id="dataAssistantToggle" class="data-assistant-toggle" type="button" aria-expanded="${String(ui.isOpen)}" aria-controls="dataAssistantMessages" title="打开数据助手">
+      ${!ui.isOpen && ui.showNudge ? '<button id="dataAssistantNudge" class="data-assistant-nudge" type="button" aria-label="打开数据助手，了解数据问题">有问题找我了解</button>' : ""}
+      <button id="dataAssistantToggle" class="data-assistant-toggle" type="button" aria-expanded="${String(ui.isOpen)}" aria-controls="dataAssistantMessages" title="${ui.isOpen ? "收起数据助手" : "打开数据助手"}">
         <i data-lucide="bot-message-square"></i><span>数据助手</span>
       </button>
     </div>
