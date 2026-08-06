@@ -13,7 +13,7 @@ import { readExcelFile } from "./parser/excelParser.js";
 import { matchWorkbookSections } from "./parser/sectionMatcher.js";
 import { normalizeNewsSection, normalizeTableSection } from "./parser/normalizer.js";
 import { renderNewsSections } from "./render/newsRenderer.js";
-import { renderTableCards } from "./render/tableRenderer.js";
+import { getInnovativePoolMonths, getInnovativePoolRangeAnalysis, renderInnovativePoolOverview, renderTableCards } from "./render/tableRenderer.js";
 import { buildResearchSurvey, getSurveyMetrics, isAffirmative as isSurveyAffirmative } from "./researchSurvey.js";
 import { loadDashboardState, saveDashboardState } from "./state/storage.js";
 import { formatRole, isAdministrator, loadCurrentUser } from "./userSession.js";
@@ -32,6 +32,7 @@ let dashboardState = demoDashboardData;
 let notice = null;
 let activeGuide = getActiveGuideFromHash();
 let currentUser = { name: "当前用户", role: "viewer" };
+let innovationUi = { overviewStartMonth: null, overviewEndMonth: null };
 let rareDiseaseUi = {
   overviewStartYear: null,
   overviewEndYear: null,
@@ -42,10 +43,18 @@ let rareDiseaseUi = {
   unarchivedStartYear: null,
   unarchivedEndYear: null,
   selectedIndication: "",
-  searchTerm: ""
+  searchTerm: "",
+  recordArchiveStatus: "all",
+  recordBrand: "",
+  recordIndication: "",
+  recordApprovalYear: "",
+  recordSortKey: "",
+  recordSortDirection: "asc",
+  recordPage: 1,
+  recordPageSize: 12
 };
-let procurementOriginatorUi = { startYear: null, endYear: null };
-let hivUi = { startYear: null, endYear: null };
+let procurementOriginatorUi = createSpecialtyTableState();
+let hivUi = createSpecialtyTableState();
 let dataAssistantUi = createAssistantState();
 let dataAssistantNudgeTimer;
 let dataAssistantNudgeHideTimer;
@@ -138,12 +147,21 @@ function renderDashboard() {
   bindGuideNav();
   bindPdfExport();
   bindAnalysisLauncher();
+  bindInnovationDashboard();
   bindRareDiseaseDashboard();
   bindSpecialtyDashboards();
   bindDataAssistant();
   renderNotice();
   const newsContainer = document.querySelector("#newsSections");
   const tableContainer = document.querySelector("#tableCards");
+  const innovationPoolSection = dashboardState.tableSections.find((section) => section.key === "innovativeDrugPool");
+  const innovationPoolBody = document.querySelector("#innovationPoolOverview");
+  if (innovationPoolSection && innovationPoolBody) {
+    renderInnovativePoolOverview(
+      innovationPoolBody,
+      getInnovativePoolRangeAnalysis(innovationPoolSection, innovationUi.overviewStartMonth, innovationUi.overviewEndMonth)
+    );
+  }
   if (newsContainer) renderNewsSections(newsContainer, dashboardState.newsSections, dashboardState.tableSections);
   if (tableContainer) renderTableCards(tableContainer, dashboardState.tableSections, openTableSection);
   createIcons({ icons });
@@ -161,19 +179,56 @@ function renderGuideItems() {
 
 function renderInnovationDashboard(overview) {
   const hasNews = dashboardState.newsSections.some((section) => section.items.length);
-  const hasTableData = dashboardState.tableSections.some((section) => section.rows.length);
+  const hasTableData = dashboardState.tableSections.some((section) => section.rows.length && section.key !== "innovativeDrugPool");
+  const poolSection = dashboardState.tableSections.find((section) => section.key === "innovativeDrugPool");
+  const availableMonths = getInnovativePoolMonths(poolSection);
+  const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+  const selectableMonths = availableMonths.length ? availableMonths : [currentMonth];
+  const selectableYears = [...new Set(selectableMonths.map((month) => month.slice(0, 4)))];
+
+  if (!selectableMonths.includes(innovationUi.overviewStartMonth)) {
+    innovationUi.overviewStartMonth = selectableMonths[0];
+  }
+  if (!selectableMonths.includes(innovationUi.overviewEndMonth)) {
+    innovationUi.overviewEndMonth = selectableMonths.at(-1);
+  }
+  if (innovationUi.overviewStartMonth > innovationUi.overviewEndMonth) {
+    innovationUi.overviewEndMonth = innovationUi.overviewStartMonth;
+  }
+
+  const poolAnalysis = getInnovativePoolRangeAnalysis(poolSection, innovationUi.overviewStartMonth, innovationUi.overviewEndMonth);
+  const sourceName = poolSection?.source?.sheetName || "创新药表格";
+  const periodLabel = poolAnalysis.startMonth === poolAnalysis.endMonth ? formatInnovationMonth(poolAnalysis.startMonth) : `${formatInnovationMonth(poolAnalysis.startMonth)}至${formatInnovationMonth(poolAnalysis.endMonth)}`;
+  const [startYear, startMonth] = poolAnalysis.startMonth.split("-");
+  const [endYear, endMonth] = poolAnalysis.endMonth.split("-");
 
   return `
-      <main id="innovation-content">
-        <section class="status-band overview-band${isAdministrator(currentUser) ? "" : " is-readonly"}"${isAdministrator(currentUser) ? ' id="uploadZone" aria-label="经营信息总览，可拖拽上传表格"' : ' aria-label="经营信息总览"'}>
-          <div>
-            <p class="business-overview"><strong>经营信息总览：</strong>${overview.text}</p>
-            ${overview.researchMetrics ? renderResearchProgress(overview.researchMetrics) : renderResearchImportHint()}
+      <main id="innovation-content" class="innovation-main">
+        <section class="status-band innovation-hero${isAdministrator(currentUser) ? "" : " is-readonly"}"${isAdministrator(currentUser) ? ' id="uploadZone" aria-label="上市创新药品种池，可拖拽上传表格"' : ' aria-label="上市创新药品种池"'}>
+          <div class="innovation-hero-heading">
+            <div class="innovation-hero-copy">
+              <span class="eyebrow">创新药</span>
+              <h2>上市创新药品种池</h2>
+              <p>${periodLabel}，国家药监局批准 <strong>${poolAnalysis.totals.newDrugCount}</strong> 个品种，落地四川 <strong>${poolAnalysis.totals.landedSichuanCount}</strong> 个，国药西南建档 <strong>${poolAnalysis.totals.southwestArchivedCount}</strong> 个，建档率 <strong>${poolAnalysis.archiveRate}%</strong>。</p>
+              ${overview.researchMetrics ? renderResearchProgress(overview.researchMetrics) : renderResearchImportHint()}
+            </div>
+            <div class="innovation-hero-actions">
+              <div class="innovation-overview-tools">
+                <div class="innovation-overview-range" aria-label="总览统计时段"><span><i data-lucide="calendar-range"></i>统计时段</span><select id="innovationOverviewStartYear" aria-label="开始年份">${selectableYears
+                  .map((year) => `<option value="${year}"${year === startYear ? " selected" : ""}>${year}年</option>`)
+                  .join("")}</select><select id="innovationOverviewStartMonth" aria-label="开始月份">${renderInnovationMonthOptions(startMonth)}</select><b>至</b><select id="innovationOverviewEndYear" aria-label="结束年份">${selectableYears
+                  .map((year) => `<option value="${year}"${year === endYear ? " selected" : ""}>${year}年</option>`)
+                  .join("")}</select><select id="innovationOverviewEndMonth" aria-label="结束月份">${renderInnovationMonthOptions(endMonth)}</select></div>
+                <span class="innovation-source-badge"><i data-lucide="database"></i>${escapeHtml(sourceName)}</span>
+                <a class="innovation-table-link" href="/table.html?section=innovativeDrugPool"><span>查看品种明细</span><i data-lucide="arrow-up-right"></i></a>
+              </div>
+              <a class="survey-entry-card innovation-survey-entry" href="/survey.html">
+                <span><small>调研填报</small><strong>调研信息填写</strong><em>${overview.researchMetrics ? `还有 ${overview.researchMetrics.currentUserPendingCount} 项待处理` : "上传调研表后开始填写"}</em></span>
+                <i data-lucide="arrow-up-right"></i>
+              </a>
+            </div>
           </div>
-          <a class="survey-entry-card" href="/survey.html">
-            <span><small>调研填报</small><strong>调研信息填写</strong><em>${overview.researchMetrics ? `还有 ${overview.researchMetrics.currentUserPendingCount} 项待处理` : "上传调研表后开始填写"}</em></span>
-            <i data-lucide="arrow-up-right"></i>
-          </a>
+          <div id="innovationPoolOverview" class="innovation-pool-overview" aria-live="polite"></div>
         </section>
 
         <div id="noticeHost"></div>
@@ -181,11 +236,11 @@ function renderInnovationDashboard(overview) {
         ${
           hasNews
             ? `
-              <section class="content-band">
+              <section class="content-band innovation-news-section">
                 <div class="section-heading">
                   <div>
-                    <span class="eyebrow">新闻动态</span>
-                    <h2>动态新闻板块</h2>
+                    <span class="eyebrow">实时动态</span>
+                    <h2>本周关注与引进进展</h2>
                   </div>
                 </div>
                 <div id="newsSections" class="news-grid"></div>
@@ -197,11 +252,11 @@ function renderInnovationDashboard(overview) {
         ${
           hasTableData
             ? `
-              <section class="content-band">
+              <section class="content-band innovation-workbench-section">
                 <div class="section-heading">
                   <div>
-                    <span class="eyebrow">数据表格</span>
-                    <h2>表格展示板块</h2>
+                    <span class="eyebrow">重点跟进</span>
+                    <h2>品种引进与建档工作台</h2>
                   </div>
                   <a class="button button-ghost" href="/table.html"><i data-lucide="table-2"></i><span>完整表格</span></a>
                 </div>
@@ -412,10 +467,10 @@ function renderRareDiseaseDashboard() {
             <div><span class="eyebrow">药品目录</span><h2>罕见病药品明细</h2></div>
             <form id="rareRecordSearchForm" class="rare-record-search">
               <label><i data-lucide="search"></i><input name="rareRecordSearch" value="${escapeHtml(rareDiseaseUi.searchTerm)}" placeholder="检索通用名、厂牌、适应症" aria-label="检索罕见病药品明细" /></label>
-              <button class="button button-ghost" type="submit">筛选</button>
+              <button class="button button-ghost" type="submit"><i data-lucide="search"></i><span>检索</span></button>
             </form>
           </div>
-          ${renderRareRecords(dashboard.records, indicationAnalysis.salesYears, indicationAnalysis.periodLabel, rareDiseaseUi.searchTerm)}
+          ${renderRareRecords(dashboard.records, indicationAnalysis.salesYears, indicationAnalysis.periodLabel, rareDiseaseUi)}
         </section>
       </main>
   `;
@@ -625,7 +680,7 @@ function getRareDiseaseRangeAnalysis(dashboard, startYear, endYear) {
 
 function renderRareDonut(analysis) {
   if (!analysis.indications.length || !analysis.indicationTotal) return '<div class="empty-state">所选时段暂无适应症销售数据</div>';
-  const palette = ["#123f73", "#16806e", "#e4893b", "#5d74c7", "#ad5f85", "#5e9d64", "#bc754d", "#66717d"];
+  const palette = ["#3c5488", "#4dbbd5", "#e69f00", "#8491b4", "#7e8fa6", "#d98c3b", "#6c86a5", "#b0bec5"];
   const highlighted = analysis.indications.slice(0, 7).map((item, index) => ({ ...item, color: palette[index] }));
   const remaining = analysis.indications.slice(7);
   if (remaining.length) {
@@ -694,25 +749,154 @@ function renderRareIndicationDetail(indication, periodLabel) {
   `;
 }
 
-function renderRareRecords(records, salesYears, periodLabel, searchTerm) {
-  const normalizedSearch = String(searchTerm || "").trim().toLowerCase();
-  const filtered = records.filter((record) => {
-    if (!normalizedSearch) return true;
-    return [record.genericName, record.productName, record.brand, record.indicationShort, record.indication, record.target]
-      .join(" ")
-      .toLowerCase()
-      .includes(normalizedSearch);
-  });
-  const displayed = filtered.slice(0, 12);
+function renderRareRecordOptions(values, selectedValue, emptyLabel) {
+  return [`<option value="">${emptyLabel}</option>`]
+    .concat(
+      values.map((value) => {
+        const escaped = escapeHtml(value);
+        return `<option value="${escaped}"${String(value) === String(selectedValue) ? " selected" : ""}>${escaped}</option>`;
+      })
+    )
+    .join("");
+}
+
+function renderRareRecords(records, salesYears, periodLabel, ui) {
   const salesForRange = (record) => salesYears.reduce((total, year) => total + Number(record.sales?.[year] || 0), 0);
+  const filtered = getFilteredRareRecords(records, ui, salesForRange);
+  const pageSize = Math.max(1, Number(ui.recordPageSize) || 12);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(Math.max(1, Number(ui.recordPage) || 1), pageCount);
+  ui.recordPage = currentPage;
+  const startIndex = (currentPage - 1) * pageSize;
+  const displayed = filtered.slice(startIndex, startIndex + pageSize);
+  const displayStart = filtered.length ? startIndex + 1 : 0;
+  const displayEnd = startIndex + displayed.length;
+  const { brands, indications, approvalYears } = getRareRecordFilterOptions(records);
   return `
-    <div class="rare-record-meta">显示 ${displayed.length} / ${filtered.length} 条（全部 ${records.length} 条）</div>
-    <div class="table-wrap rare-record-table"><table><thead><tr><th>通用名</th><th>商品名</th><th>厂牌</th><th>适应症</th><th>靶点</th><th>初次获批</th><th>建档</th><th>${periodLabel}销售</th></tr></thead><tbody>${displayed.length ? displayed
+    <div class="rare-record-meta">显示第 ${displayStart}-${displayEnd} 条，共 ${filtered.length} 条（全部 ${records.length} 条）</div>
+    <div class="table-wrap rare-record-table"><table><thead><tr>${renderRareTableHeader("通用名", "genericName")}${renderRareTableHeader("商品名", "productName")}${renderRareTableHeader("厂牌", "brand", renderRareRecordHeaderFilter("厂牌", "recordBrand", brands, ui.recordBrand, "全部厂牌"))}${renderRareTableHeader("适应症", "indication", renderRareRecordHeaderFilter("适应症", "recordIndication", indications, ui.recordIndication, "全部适应症"))}${renderRareTableHeader("靶点", "target")}${renderRareTableHeader("初次获批", "approvalDate", renderRareRecordHeaderFilter("初次获批", "recordApprovalYear", approvalYears, ui.recordApprovalYear, "全部年份"))}${renderRareTableHeader("建档", "archived", renderRareArchiveHeaderFilter())}${renderRareTableHeader(`${periodLabel}销售`, "sales")}</tr></thead><tbody>${displayed.length ? displayed
       .map(
         (record) => `<tr><th scope="row">${escapeHtml(record.genericName)}</th><td>${escapeHtml(record.productName || "/")}</td><td>${escapeHtml(record.brand || "/")}</td><td>${escapeHtml(record.indicationShort || record.indication || "/")}</td><td>${escapeHtml(record.target || "/")}</td><td>${escapeHtml(record.approvalDate)}</td><td><span class="rare-archive-status ${record.archived ? "is-archived" : ""}">${record.archived ? "已建档" : "未建档"}</span></td><td>${formatTopSalesAmount(salesForRange(record))} 万元</td></tr>`
       )
       .join("") : '<tr><td colspan="8"><div class="empty-state">未找到匹配的药品明细</div></td></tr>'}</tbody></table></div>
+    ${renderRareRecordPagination(currentPage, pageCount, filtered.length)}
   `;
+}
+
+function renderRareTableHeader(label, sortKey, filterControl = "") {
+  const isCurrent = rareDiseaseUi.recordSortKey === sortKey;
+  const icon = isCurrent ? (rareDiseaseUi.recordSortDirection === "asc" ? "arrow-up" : "arrow-down") : "arrow-up-down";
+  return `<th><div class="table-header-content"><button class="sort-button" type="button" data-rare-record-sort="${sortKey}" aria-label="按${label}排序"><span>${label}</span><i data-lucide="${icon}"></i></button>${filterControl}</div></th>`;
+}
+
+function renderRareRecordHeaderFilter(label, stateKey, values, selectedValue, emptyLabel) {
+  return `<span class="header-filter-control${selectedValue ? " is-active" : ""}"><i data-lucide="filter"></i><select data-rare-header-filter="${stateKey}" aria-label="按${label}筛选">${renderRareRecordOptions(values, selectedValue, emptyLabel)}</select></span>`;
+}
+
+function renderRareArchiveHeaderFilter() {
+  const selected = rareDiseaseUi.recordArchiveStatus;
+  return `<span class="header-filter-control${selected !== "all" ? " is-active" : ""}"><i data-lucide="filter"></i><select data-rare-header-filter="recordArchiveStatus" aria-label="按建档状态筛选"><option value="all"${selected === "all" ? " selected" : ""}>全部状态</option><option value="archived"${selected === "archived" ? " selected" : ""}>已建档</option><option value="unarchived"${selected === "unarchived" ? " selected" : ""}>未建档</option></select></span>`;
+}
+
+function getRareRecordFilterOptions(records) {
+  const uniqueSortedValues = (values, compare) => [...new Set(values.filter(Boolean))].sort(compare);
+  return {
+    brands: uniqueSortedValues(records.map((record) => record.brand), (left, right) => left.localeCompare(right, "zh-CN")),
+    indications: uniqueSortedValues(records.map(getRareRecordIndication), (left, right) => left.localeCompare(right, "zh-CN")),
+    approvalYears: uniqueSortedValues(records.map(getRareRecordApprovalYear), (left, right) => Number(right) - Number(left))
+  };
+}
+
+function getFilteredRareRecords(records, ui, salesForRange) {
+  const normalizedSearch = String(ui.searchTerm || "").trim().toLowerCase();
+  const filtered = records.filter((record) => {
+    const matchesSearch =
+      !normalizedSearch ||
+      [record.genericName, record.productName, record.brand, record.indicationShort, record.indication, record.target]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedSearch);
+    const matchesArchiveStatus =
+      ui.recordArchiveStatus === "all" ||
+      (ui.recordArchiveStatus === "archived" && record.archived) ||
+      (ui.recordArchiveStatus === "unarchived" && !record.archived);
+    const matchesBrand = !ui.recordBrand || record.brand === ui.recordBrand;
+    const matchesIndication = !ui.recordIndication || getRareRecordIndication(record) === ui.recordIndication;
+    const matchesApprovalYear = !ui.recordApprovalYear || getRareRecordApprovalYear(record) === ui.recordApprovalYear;
+    return matchesSearch && matchesArchiveStatus && matchesBrand && matchesIndication && matchesApprovalYear;
+  });
+
+  if (!ui.recordSortKey) return filtered;
+  return [...filtered].sort((left, right) => {
+    const leftValue = getRareRecordSortValue(left, ui.recordSortKey, salesForRange);
+    const rightValue = getRareRecordSortValue(right, ui.recordSortKey, salesForRange);
+    const result = compareTableValues(leftValue, rightValue);
+    return ui.recordSortDirection === "asc" ? result : -result;
+  });
+}
+
+function getRareRecordSortValue(record, key, salesForRange) {
+  if (key === "sales") return salesForRange(record);
+  if (key === "archived") return record.archived ? 1 : 0;
+  if (key === "indication") return getRareRecordIndication(record);
+  return record[key] || "";
+}
+
+function compareTableValues(leftValue, rightValue) {
+  const leftEmpty = leftValue === undefined || leftValue === null || leftValue === "";
+  const rightEmpty = rightValue === undefined || rightValue === null || rightValue === "";
+  if (leftEmpty && rightEmpty) return 0;
+  if (leftEmpty) return 1;
+  if (rightEmpty) return -1;
+  if (typeof leftValue === "number" && typeof rightValue === "number") return leftValue - rightValue;
+  return String(leftValue).localeCompare(String(rightValue), "zh-CN", { numeric: true });
+}
+
+function getRareRecordIndication(record) {
+  return record.indicationShort || record.indication || "";
+}
+
+function getRareRecordApprovalYear(record) {
+  return String(record.approvalDate || "").match(/\d{4}/)?.[0] || "";
+}
+
+function renderRareRecordPagination(currentPage, pageCount, rowCount) {
+  if (!rowCount) return "";
+
+  const pageItems = getRareRecordPaginationItems(currentPage, pageCount);
+  return `
+    <nav class="rare-record-pagination" aria-label="药品明细分页">
+      <div class="rare-pagination-buttons">
+        <button class="button button-ghost rare-pagination-button" type="button" data-rare-record-page="1"${currentPage === 1 ? " disabled" : ""} aria-label="首页"><i data-lucide="chevrons-left"></i></button>
+        <button class="button button-ghost rare-pagination-button" type="button" data-rare-record-page="${currentPage - 1}"${currentPage === 1 ? " disabled" : ""} aria-label="上一页"><i data-lucide="chevron-left"></i></button>
+        ${pageItems
+          .map((item) =>
+            item === "…"
+              ? '<span class="rare-page-ellipsis" aria-hidden="true">…</span>'
+              : `<button class="button button-ghost rare-page-number${item === currentPage ? " is-active" : ""}" type="button" data-rare-record-page="${item}"${item === currentPage ? ' aria-current="page"' : ""}>${item}</button>`
+          )
+          .join("")}
+        <button class="button button-ghost rare-pagination-button" type="button" data-rare-record-page="${currentPage + 1}"${currentPage === pageCount ? " disabled" : ""} aria-label="下一页"><i data-lucide="chevron-right"></i></button>
+        <button class="button button-ghost rare-pagination-button" type="button" data-rare-record-page="${pageCount}"${currentPage === pageCount ? " disabled" : ""} aria-label="末页"><i data-lucide="chevrons-right"></i></button>
+      </div>
+      <form id="rareRecordPageJumpForm" class="rare-page-jump"><label>跳至 <input name="rareRecordPage" type="number" min="1" max="${pageCount}" value="${currentPage}" inputmode="numeric" aria-label="跳转页码" /> 页</label><button class="button button-ghost" type="submit">确定</button><small>共 ${pageCount} 页</small></form>
+    </nav>
+  `;
+}
+
+function getRareRecordPaginationItems(currentPage, pageCount) {
+  if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+
+  const pages = new Set([1, pageCount, currentPage - 1, currentPage, currentPage + 1]);
+  if (currentPage <= 3) pages.add(2), pages.add(3), pages.add(4);
+  if (currentPage >= pageCount - 2) pages.add(pageCount - 1), pages.add(pageCount - 2), pages.add(pageCount - 3);
+  const sortedPages = [...pages].filter((page) => page >= 1 && page <= pageCount).sort((left, right) => left - right);
+
+  return sortedPages.reduce((items, page, index) => {
+    if (index && page - sortedPages[index - 1] > 1) items.push("…");
+    items.push(page);
+    return items;
+  }, []);
 }
 
 function renderRareUnarchivedAnalysis(analysis, availableYears) {
@@ -1102,6 +1286,18 @@ function getActiveGuideFromHash() {
   return GUIDE_INNOVATION;
 }
 
+function formatInnovationMonth(value) {
+  const [year, rawMonth] = String(value || "").split("-");
+  return year && rawMonth ? `${year}年${Number(rawMonth)}月` : "未标注月份";
+}
+
+function renderInnovationMonthOptions(selectedMonth) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const month = String(index + 1).padStart(2, "0");
+    return `<option value="${month}"${month === selectedMonth ? " selected" : ""}>${index + 1}月</option>`;
+  }).join("");
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -1169,6 +1365,29 @@ function bindGuideNav() {
       document.querySelector("#noticeHost")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+}
+
+function bindInnovationDashboard() {
+  const controls = {
+    startYear: document.querySelector("#innovationOverviewStartYear"),
+    startMonth: document.querySelector("#innovationOverviewStartMonth"),
+    endYear: document.querySelector("#innovationOverviewEndYear"),
+    endMonth: document.querySelector("#innovationOverviewEndMonth")
+  };
+
+  const updateRange = (changedKey) => {
+    let start = `${controls.startYear?.value}-${controls.startMonth?.value}`;
+    let end = `${controls.endYear?.value}-${controls.endMonth?.value}`;
+    if (start > end) {
+      if (changedKey.startsWith("start")) end = start;
+      else start = end;
+    }
+    innovationUi.overviewStartMonth = start;
+    innovationUi.overviewEndMonth = end;
+    renderDashboard();
+  };
+
+  Object.entries(controls).forEach(([key, control]) => control?.addEventListener("change", () => updateRange(key)));
 }
 
 function bindRareDiseaseDashboard() {
@@ -1258,13 +1477,73 @@ function bindRareDiseaseDashboard() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     rareDiseaseUi.searchTerm = String(form.get("rareRecordSearch") || "");
+    rareDiseaseUi.recordPage = 1;
     renderDashboard();
+  });
+
+  document.querySelectorAll("[data-rare-header-filter]").forEach((control) => {
+    control.addEventListener("change", () => {
+      rareDiseaseUi[control.dataset.rareHeaderFilter] = control.value;
+      rareDiseaseUi.recordPage = 1;
+      renderDashboard();
+    });
+  });
+
+  document.querySelectorAll("[data-rare-record-sort]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const sortKey = button.dataset.rareRecordSort;
+      rareDiseaseUi.recordSortDirection = rareDiseaseUi.recordSortKey === sortKey && rareDiseaseUi.recordSortDirection === "asc" ? "desc" : "asc";
+      rareDiseaseUi.recordSortKey = sortKey;
+      rareDiseaseUi.recordPage = 1;
+      renderDashboard();
+    });
+  });
+
+  document.querySelectorAll("[data-rare-record-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      rareDiseaseUi.recordPage = Number(button.dataset.rareRecordPage) || 1;
+      renderDashboard();
+      scrollToRareRecords();
+    });
+  });
+
+  document.querySelector("#rareRecordPageJumpForm")?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = event.currentTarget.elements.rareRecordPage;
+    const maximumPage = Number(input.max) || 1;
+    const requestedPage = Number(input.value);
+    rareDiseaseUi.recordPage = Math.min(maximumPage, Math.max(1, Number.isFinite(requestedPage) ? Math.trunc(requestedPage) : 1));
+    renderDashboard();
+    scrollToRareRecords();
+  });
+}
+
+function scrollToRareRecords() {
+  requestAnimationFrame(() => {
+    document.querySelector(".rare-records-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
 
 function bindSpecialtyDashboards() {
   bindSpecialtyRangeFilter("procurement", procurementOriginatorUi);
   bindSpecialtyRangeFilter("hiv", hivUi);
+  bindSpecialtyRecordTable("procurement", procurementOriginatorUi);
+  bindSpecialtyRecordTable("hiv", hivUi);
+}
+
+function createSpecialtyTableState() {
+  return {
+    startYear: null,
+    endYear: null,
+    recordSearch: "",
+    recordBrand: "",
+    recordCategory: "",
+    recordSortKey: "",
+    recordSortDirection: "asc",
+    recordPage: 1,
+    recordPageSize: 8
+  };
 }
 
 function bindSpecialtyRangeFilter(prefix, state) {
@@ -1281,6 +1560,59 @@ function bindSpecialtyRangeFilter(prefix, state) {
     state.endYear = Number(endYearSelect.value);
     if (state.endYear < Number(state.startYear)) state.startYear = state.endYear;
     renderDashboard();
+  });
+}
+
+function bindSpecialtyRecordTable(prefix, state) {
+  document.querySelector(`#${prefix}RecordSearchForm`)?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.recordSearch = String(new FormData(event.currentTarget).get("specialtyRecordSearch") || "");
+    state.recordPage = 1;
+    renderDashboard();
+  });
+
+  document.querySelectorAll(`[data-specialty-header-filter="${prefix}"]`).forEach((control) => {
+    control.addEventListener("change", () => {
+      const stateKey = control.dataset.specialtyFilterKey === "brand" ? "recordBrand" : "recordCategory";
+      state[stateKey] = control.value;
+      state.recordPage = 1;
+      renderDashboard();
+    });
+  });
+
+  document.querySelectorAll(`[data-specialty-record-sort="${prefix}"]`).forEach((button) => {
+    button.addEventListener("click", () => {
+      const sortKey = button.dataset.specialtySortKey;
+      state.recordSortDirection = state.recordSortKey === sortKey && state.recordSortDirection === "asc" ? "desc" : "asc";
+      state.recordSortKey = sortKey;
+      state.recordPage = 1;
+      renderDashboard();
+    });
+  });
+
+  document.querySelectorAll(`[data-specialty-record="${prefix}"]`).forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      state.recordPage = Number(button.dataset.specialtyPage) || 1;
+      renderDashboard();
+      scrollToSpecialtyRecords();
+    });
+  });
+
+  document.querySelector(`#${prefix}RecordPageJumpForm`)?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = event.currentTarget.querySelector('input[name="specialtyRecordPage"]');
+    const maximumPage = Number(input?.max) || 1;
+    const requestedPage = Number(input?.value);
+    state.recordPage = Math.min(maximumPage, Math.max(1, Number.isFinite(requestedPage) ? Math.trunc(requestedPage) : 1));
+    renderDashboard();
+    scrollToSpecialtyRecords();
+  });
+}
+
+function scrollToSpecialtyRecords() {
+  requestAnimationFrame(() => {
+    document.querySelector(".specialty-record-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
 

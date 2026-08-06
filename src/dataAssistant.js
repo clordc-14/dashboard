@@ -2,6 +2,7 @@ import { controlledDrugDemoData } from "./config/controlledDrugDemoData.js";
 import { hivDemoData } from "./config/hivDemoData.js";
 import { procurementOriginatorDemoData } from "./config/procurementOriginatorDemoData.js";
 import { rareDiseaseDemoData } from "./config/rareDiseaseDemoData.js";
+import mascotUrl from "./assets/data-assistant-mascot-head.png";
 
 const MAX_MESSAGES = 14;
 
@@ -26,7 +27,7 @@ export function renderDataAssistant(ui, activeGuide) {
     <div class="data-assistant-launcher${ui.isOpen ? " is-open" : ""}" aria-label="数据助手">
       <section class="data-assistant-panel" aria-labelledby="dataAssistantTitle"${ui.isOpen ? "" : " hidden"}>
         <header class="data-assistant-header">
-          <span class="data-assistant-avatar"><i data-lucide="bot-message-square"></i></span>
+          <span class="data-assistant-avatar"><img src="${mascotUrl}" alt="" aria-hidden="true"></span>
           <div><small>国药西南新药引进网</small><h2 id="dataAssistantTitle">数据助手</h2><p><i data-lucide="shield-check"></i>仅依据已存数据回答</p></div>
           <button id="dataAssistantClose" class="data-assistant-close" type="button" aria-label="收起数据助手" title="收起数据助手"><span>收起</span><i data-lucide="chevron-down"></i></button>
         </header>
@@ -44,7 +45,7 @@ export function renderDataAssistant(ui, activeGuide) {
       </section>
       ${!ui.isOpen && ui.showNudge ? '<button id="dataAssistantNudge" class="data-assistant-nudge" type="button" aria-label="打开数据助手，了解数据问题">有问题找我了解</button>' : ""}
       <button id="dataAssistantToggle" class="data-assistant-toggle" type="button" aria-expanded="${String(ui.isOpen)}" aria-controls="dataAssistantMessages" title="${ui.isOpen ? "收起数据助手" : "打开数据助手"}">
-        <i data-lucide="bot-message-square"></i><span>${ui.isOpen ? "收起助手" : "数据助手"}</span>
+        <span class="data-assistant-toggle-mascot"><img src="${mascotUrl}" alt="" aria-hidden="true"></span><span>${ui.isOpen ? "收起助手" : "数据助手"}</span>
       </button>
     </div>
   `;
@@ -454,7 +455,7 @@ function getExamples(activeGuide) {
 
 function renderAssistantMessage(message) {
   const isUser = message.role === "user";
-  return `<article class="data-assistant-message ${isUser ? "is-user" : "is-assistant"}">${isUser ? "" : '<span class="data-assistant-message-avatar"><i data-lucide="bot"></i></span>'}<div><p>${escapeHtml(message.content).replace(/\n/g, "<br>")}</p>${message.sources?.length ? `<small>来源：${[...new Set(message.sources)].map(escapeHtml).join(" · ")}</small>` : ""}</div></article>`;
+  return `<article class="data-assistant-message ${isUser ? "is-user" : "is-assistant"}">${isUser ? "" : `<span class="data-assistant-message-avatar"><img src="${mascotUrl}" alt="" aria-hidden="true"></span>`}<div><p>${escapeHtml(message.content).replace(/\n/g, "<br>")}</p>${message.sources?.length ? `<small>来源：${[...new Set(message.sources)].map(escapeHtml).join(" · ")}</small>` : ""}</div></article>`;
 }
 
 function createAnswer(content, sources) {

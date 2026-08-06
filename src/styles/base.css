@@ -1,22 +1,22 @@
 :root {
   color-scheme: light;
-  --bg: #f2f4f6;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-strong: #f8fbfa;
-  --line: #dce5e7;
-  --line-strong: #c2d1d5;
-  --text: #172528;
-  --muted: #66777d;
-  --teal: #14826d;
-  --teal-dark: #0f6858;
+  --surface-strong: #f6f8fb;
+  --line: #dce3eb;
+  --line-strong: #c4d0de;
+  --text: #1b3a67;
+  --muted: #728197;
+  --teal: #62b6eb;
+  --teal-dark: #173f73;
   --blue: #173f73;
-  --amber: #b7791f;
-  --red: #b42318;
-  --green-soft: #dff3ea;
-  --blue-soft: #e6eef7;
-  --amber-soft: #fff4dc;
-  --red-soft: #feeceb;
-  --shadow: 0 14px 36px rgba(25, 50, 55, 0.08);
+  --amber: #e19a47;
+  --red: #d68169;
+  --green-soft: #eaf6ff;
+  --blue-soft: #eaf3fb;
+  --amber-soft: #fff3e4;
+  --red-soft: #fff0e9;
+  --shadow: 0 12px 32px rgba(23, 63, 115, 0.08);
   font-family:
     "Microsoft YaHei",
     "PingFang SC",
@@ -99,11 +99,11 @@ a:hover {
 .button-primary {
   color: #ffffff;
   background: var(--teal-dark);
-  box-shadow: 0 9px 18px rgba(17, 94, 89, 0.18);
+  box-shadow: 0 9px 18px rgba(23, 63, 115, 0.17);
 }
 
 .button-primary:hover {
-  background: #0b4f4b;
+  background: #12335f;
   text-decoration: none;
 }
 
@@ -135,8 +135,8 @@ a:hover {
 
 .search-highlight {
   padding: 0 2px;
-  color: #163b68;
-  background: #ccefe1;
+  color: #285b95;
+  background: #e4f3ff;
   border-radius: 4px;
   font-weight: 900;
 }
@@ -187,16 +187,16 @@ td {
 }
 
 th {
-  color: #31464c;
-  background: #f2f6f6;
+  color: #38506f;
+  background: #f1f4f8;
   font-size: 13px;
   font-weight: 800;
 }
 
 tbody tr:hover {
-  background: #fbfdfd;
+  background: #f5f8fc;
 }
 
 td {
-  color: #26383d;
+  color: #314863;
 }
