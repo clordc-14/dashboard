@@ -7209,6 +7209,10 @@ a.search-result-title:hover {
   box-shadow: 0 20px 56px rgba(22, 53, 70, 0.24);
 }
 
+.data-assistant-panel[hidden] {
+  display: none;
+}
+
 .data-assistant-header {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
