@@ -1,7 +1,7 @@
 .app-shell {
-  width: min(1440px, calc(100% - 32px));
+  width: min(1720px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 24px 0 44px;
+  padding: 20px 0 40px;
 }
 
 .topbar {
@@ -117,7 +117,7 @@
 .guide-item {
   display: grid;
   min-width: 0;
-  min-height: 52px;
+  min-height: 58px;
   place-items: center;
   padding: 0 12px;
   color: #ffffff;
@@ -125,7 +125,7 @@
   border: 0;
   border-left: 1px solid rgba(255, 255, 255, 0.22);
   cursor: pointer;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 900;
   text-align: center;
   text-decoration: none;
@@ -197,7 +197,7 @@
 
 .controlled-main {
   display: grid;
-  gap: 22px;
+  gap: 18px;
 }
 
 .controlled-overview-band {
@@ -219,8 +219,8 @@
 
 .controlled-overview-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
-  gap: 16px;
+  grid-template-columns: minmax(620px, 0.95fr) minmax(720px, 1.05fr);
+  gap: 12px;
   align-items: stretch;
 }
 
@@ -272,7 +272,9 @@
 }
 
 .controlled-overview-table table {
-  min-width: 820px;
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
 }
 
 .controlled-overview-table th,
@@ -280,31 +282,61 @@
   vertical-align: middle;
 }
 
-.controlled-overview-table th:not(:first-child),
-.controlled-overview-table td:not(:first-child) {
+.controlled-overview-table th,
+.controlled-overview-table td {
   text-align: center;
 }
 
 .controlled-overview-table th:first-child,
-.controlled-overview-table td:first-child,
-.controlled-overview-table th:nth-child(6),
-.controlled-overview-table td:nth-child(6) {
+.controlled-overview-table td:first-child {
   text-align: left;
 }
 
 .controlled-overview-table th:first-child,
-.controlled-overview-table td:first-child {
-  width: 132px;
-}
-
-.controlled-overview-table th:nth-child(6),
-.controlled-overview-table td:nth-child(6) {
-  width: 260px;
+.controlled-overview-table tbody th {
+  width: 92px;
 }
 
 .controlled-overview-table tbody th {
   color: var(--text);
   background: #eef4ff;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.controlled-overview-table tbody tr:last-child td {
+  padding: 9px 10px;
+  color: #40545a;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  vertical-align: top;
+}
+
+@media (min-width: 1281px) {
+  .controlled-overview-table-card,
+  .controlled-sales-panel {
+    min-height: 500px;
+  }
+
+  .controlled-overview-table-card {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .controlled-overview-table {
+    height: 100%;
+    align-self: stretch;
+  }
+
+  .controlled-overview-table table,
+  .controlled-overview-table tbody {
+    height: 100%;
+  }
+
+  .controlled-overview-table tbody tr {
+    height: 20%;
+  }
 }
 
 .controlled-type-dot {
@@ -330,7 +362,9 @@
 
 .controlled-sales-chart {
   display: grid;
+  width: min(100%, 840px);
   gap: 10px;
+  justify-self: center;
 }
 
 .controlled-chart-legend {
@@ -371,6 +405,9 @@
 
 .controlled-chart-scroll svg {
   display: block;
+  width: 100%;
+  min-width: 760px;
+  height: auto;
   max-width: none;
 }
 
@@ -393,6 +430,20 @@
   fill: #52666d;
   font-size: 12px;
   font-weight: 800;
+}
+
+.controlled-chart-value-label,
+.controlled-chart-total-label {
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.controlled-chart-total-label {
+  fill: #173f73;
 }
 
 .controlled-chart-total-line {
@@ -740,6 +791,1032 @@
 .controlled-action-list .lucide {
   margin-top: 3px;
   color: var(--category-color);
+}
+
+.rare-main {
+  display: grid;
+  gap: 18px;
+}
+
+.rare-hero,
+.rare-panel,
+.rare-indication-detail {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.rare-hero {
+  padding: 26px 28px;
+  overflow: hidden;
+  border-top: 5px solid #16806e;
+  background:
+    radial-gradient(circle at 96% 0, rgba(21, 130, 109, 0.14), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #f4faf8 100%);
+}
+
+.rare-hero-heading,
+.rare-section-heading,
+.rare-brand-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.rare-hero-heading h2,
+.rare-section-heading h2,
+.rare-brand-heading h2,
+.rare-indication-detail h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.rare-hero-heading p,
+.rare-brand-heading p,
+.rare-panel-heading p,
+.rare-indication-detail p {
+  margin: 8px 0 0;
+  color: #52666d;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.rare-hero-heading p strong,
+.rare-indication-detail p strong {
+  color: var(--teal-dark);
+  font-size: 17px;
+}
+
+.rare-hero-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rare-overview-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 8px 0 10px;
+  color: #587078;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid #b9ddd4;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rare-overview-range > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rare-overview-range .lucide {
+  width: 14px;
+  color: var(--teal-dark);
+}
+
+.rare-overview-range select {
+  min-width: 72px;
+  padding: 5px 20px 5px 7px;
+  color: var(--teal-dark);
+  background: #ffffff;
+  border: 1px solid #d3e3df;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 900;
+  outline: 0;
+}
+
+.rare-overview-range b {
+  color: #6b7e83;
+  font-size: 11px;
+}
+
+.rare-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 11px;
+  color: var(--teal-dark);
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid #b9ddd4;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.rare-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.rare-hero-trend {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #c9dfd9;
+}
+
+.rare-hero-trend .rare-panel-heading {
+  margin-bottom: 14px;
+}
+
+.rare-kpi-card {
+  min-height: 110px;
+  padding: 17px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d6e6e2;
+  border-radius: 10px;
+}
+
+.rare-kpi-card > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #587078;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rare-kpi-card > span .lucide {
+  color: #16806e;
+}
+
+.rare-kpi-card strong {
+  display: block;
+  margin-top: 14px;
+  color: var(--blue);
+  font-size: 31px;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.rare-kpi-card strong em {
+  margin-left: 4px;
+  color: #587078;
+  font-size: 13px;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.rare-panel {
+  padding: 20px;
+}
+
+.rare-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.rare-panel-heading h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 19px;
+  line-height: 1.25;
+}
+
+.rare-panel-heading p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.rare-panel-heading.compact {
+  margin-bottom: 12px;
+}
+
+.rare-trend-chart {
+  display: grid;
+  gap: 8px;
+}
+
+.rare-trend-layout {
+  display: grid;
+  grid-template-columns: minmax(680px, 1.45fr) minmax(400px, 0.75fr);
+  gap: 14px;
+  align-items: stretch;
+  justify-content: start;
+}
+
+.rare-trend-insights {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #c9dfd9;
+  border-radius: 10px;
+}
+
+.rare-trend-insights-heading h3,
+.rare-unarchived-card-heading h3 {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 17px;
+}
+
+.rare-trend-insights-heading p {
+  margin: 6px 0 0;
+  color: #587078;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rare-trend-insights-heading p strong {
+  color: var(--teal-dark);
+  font-size: 16px;
+}
+
+.rare-trend-insight-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rare-trend-insight-list li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px;
+  background: #f7fbfa;
+  border: 1px solid #e1edea;
+  border-radius: 8px;
+}
+
+.rare-trend-insight-list li:nth-child(1) .rare-trend-insight-icon { background: #e6efff; color: #2764bf; }
+.rare-trend-insight-list li:nth-child(2) .rare-trend-insight-icon { background: #e1f3ed; color: #117d69; }
+.rare-trend-insight-list li:nth-child(3) .rare-trend-insight-icon { background: #fff0e1; color: #c96d18; }
+
+.rare-trend-insight-icon {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.rare-trend-insight-icon .lucide { width: 16px; height: 16px; }
+
+.rare-trend-insight-list small,
+.rare-trend-insight-list strong {
+  display: block;
+}
+
+.rare-trend-insight-list small {
+  color: #687c82;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rare-trend-insight-list strong {
+  margin-top: 3px;
+  overflow: hidden;
+  color: #18333b;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rare-trend-insight-list em {
+  color: var(--teal-dark);
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.rare-trend-insight-list em span {
+  margin-left: 2px;
+  font-size: 11px;
+}
+
+.rare-trend-insight-note {
+  margin: 0;
+  color: #687c82;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.rare-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.rare-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #40545a;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.rare-chart-legend span::before {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: #4776d0;
+  content: "";
+}
+
+.rare-chart-legend .archived::before {
+  background: #1d9b81;
+}
+
+.rare-chart-legend .sales::before {
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: #e4893b;
+}
+
+.rare-chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.rare-chart-scroll svg {
+  display: block;
+  width: 100%;
+  min-width: 760px;
+  height: auto;
+  max-width: none;
+}
+
+.rare-trend-chart > small,
+.rare-data-note {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rare-chart-grid {
+  stroke: #dbe5e7;
+  stroke-dasharray: 4 4;
+}
+
+.rare-chart-axis-line {
+  stroke: #a9b9bc;
+  stroke-width: 1.4;
+}
+
+.rare-chart-axis {
+  fill: #587078;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rare-chart-unit {
+  fill: #40545a;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.rare-chart-sales-label {
+  fill: #c96d18;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.rare-chart-bar-label {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.rare-chart-bar-label.approved {
+  fill: #2d63bf;
+}
+
+.rare-chart-bar-label.archived {
+  fill: #12836e;
+}
+
+.rare-trend-bar-approved {
+  fill: #4776d0;
+}
+
+.rare-trend-bar-archived {
+  fill: #1d9b81;
+}
+
+.rare-trend-line {
+  fill: none;
+  stroke: #e4893b;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.rare-trend-point {
+  fill: #ffffff;
+  stroke: #e4893b;
+  stroke-width: 2.5;
+}
+
+.rare-analysis-section {
+  display: grid;
+  gap: 24px;
+}
+
+.rare-analysis-group {
+  display: grid;
+  gap: 16px;
+}
+
+.rare-brand-section {
+  padding-top: 24px;
+  border-top: 1px solid #c9dfd9;
+}
+
+.rare-year-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 12px;
+  color: #40545a;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rare-year-filter select {
+  padding: 3px 22px 3px 0;
+  color: var(--teal-dark);
+  background: transparent;
+  border: 0;
+  font-weight: 900;
+  outline: 0;
+}
+
+.rare-range-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 9px 0 12px;
+  color: #40545a;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rare-range-filter select {
+  min-width: 76px;
+  padding: 4px 20px 4px 7px;
+  color: var(--teal-dark);
+  background: #ffffff;
+  border: 1px solid #d3e3df;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 900;
+  outline: 0;
+}
+
+.rare-range-filter b {
+  color: #6b7e83;
+  font-size: 11px;
+}
+
+.rare-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.rare-analysis-card {
+  min-height: 360px;
+}
+
+.rare-donut-area {
+  display: grid;
+  grid-template-columns: 188px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  min-height: 270px;
+}
+
+.rare-donut {
+  position: relative;
+  display: grid;
+  width: 180px;
+  aspect-ratio: 1;
+  place-items: center;
+  background: var(--rare-donut-gradient);
+  border-radius: 50%;
+}
+
+.rare-donut::after {
+  position: absolute;
+  inset: 39px;
+  background: var(--surface);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--line);
+  content: "";
+}
+
+.rare-donut > div {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  text-align: center;
+}
+
+.rare-donut strong {
+  color: var(--blue);
+  font-size: 23px;
+  line-height: 1;
+}
+
+.rare-donut span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rare-donut-legend {
+  display: grid;
+  gap: 7px;
+}
+
+.rare-donut-legend button,
+.rare-donut-legend > span {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 4px 0;
+  color: #40545a;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.rare-donut-legend button {
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.rare-donut-legend button:hover {
+  color: var(--teal-dark);
+  background: #eff8f5;
+}
+
+.rare-donut-legend i {
+  width: 9px;
+  height: 9px;
+  background: var(--legend-color);
+  border-radius: 3px;
+}
+
+.rare-donut-legend b {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rare-donut-legend em {
+  color: var(--text);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.rare-ranked-bars {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rare-ranked-bars li > button,
+.rare-ranked-bars li > div {
+  display: grid;
+  grid-template-columns: 24px minmax(88px, 1fr) minmax(60px, 1.5fr) auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-height: 26px;
+  padding: 2px 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+}
+
+.rare-ranked-bars li > button {
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.rare-ranked-bars li > button:hover {
+  background: #f1faf7;
+}
+
+.rare-bar-rank {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: #ffffff;
+  background: #6f8792;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.rare-ranked-bars li:nth-child(-n + 3) .rare-bar-rank {
+  background: var(--teal-dark);
+}
+
+.rare-bar-label {
+  overflow: hidden;
+  color: #344b52;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rare-bar-track {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  background: #ebf1f2;
+  border-radius: 999px;
+}
+
+.rare-bar-track i {
+  display: block;
+  width: var(--bar-width);
+  height: 100%;
+  background: linear-gradient(90deg, #16806e, #52af9f);
+  border-radius: inherit;
+}
+
+.rare-bar-track + strong {
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.rare-indication-detail {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.85fr) minmax(260px, 1fr) minmax(260px, 1.35fr);
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f2faf8 0%, #ffffff 62%);
+  border-color: #c9e2da;
+}
+
+.rare-indication-detail h2 {
+  color: var(--teal-dark);
+}
+
+.rare-disease-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.rare-disease-facts div {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #d5e8e2;
+  border-radius: 8px;
+}
+
+.rare-disease-facts dt {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.rare-disease-facts dd {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.rare-product-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 7px;
+}
+
+.rare-product-chips span {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  background: #ffffff;
+  border: 1px solid #d3e8e1;
+  border-radius: 7px;
+}
+
+.rare-product-chips b {
+  color: #344b52;
+  font-size: 12px;
+}
+
+.rare-product-chips small,
+.rare-product-chips em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.rare-data-note {
+  grid-column: 1 / -1;
+  padding-top: 2px;
+}
+
+.rare-brand-heading {
+  align-items: end;
+}
+
+.rare-brand-description {
+  margin: -8px 0 0;
+  color: #52666d;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.rare-records-panel {
+  padding-bottom: 16px;
+}
+
+.rare-unarchived-section {
+  display: grid;
+  gap: 16px;
+}
+
+.rare-unarchived-description {
+  margin: -8px 0 0;
+  color: #52666d;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.rare-unarchived-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rare-unarchived-summary > div {
+  padding: 14px;
+  background: #f7fbfa;
+  border: 1px solid #d6e6e2;
+  border-radius: 8px;
+}
+
+.rare-unarchived-summary span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #587078;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rare-unarchived-summary .lucide {
+  width: 15px;
+  color: #16806e;
+}
+
+.rare-unarchived-summary strong {
+  display: block;
+  margin-top: 9px;
+  color: var(--blue);
+  font-size: 25px;
+  line-height: 1;
+}
+
+.rare-unarchived-summary em {
+  margin-left: 3px;
+  color: #587078;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.rare-unarchived-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.25fr) repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.rare-unarchived-card {
+  min-width: 0;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #d6e6e2;
+  border-radius: 9px;
+}
+
+.rare-unarchived-card-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rare-unarchived-card-heading > span {
+  align-self: flex-start;
+  padding: 4px 7px;
+  color: var(--teal-dark);
+  background: #edf8f4;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rare-unarchived-list {
+  display: grid;
+  gap: 7px;
+  max-height: 300px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.rare-unarchived-list article {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 9px;
+  background: #f7fbfa;
+  border: 1px solid #e1edea;
+  border-radius: 7px;
+}
+
+.rare-unarchived-list strong,
+.rare-unarchived-list small,
+.rare-unarchived-list time {
+  display: block;
+}
+
+.rare-unarchived-list strong {
+  color: #26383d;
+  font-size: 12px;
+}
+
+.rare-unarchived-list small,
+.rare-unarchived-list time {
+  margin-top: 3px;
+  color: #647980;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rare-unarchived-list time {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.rare-unarchived-card .rare-ranked-bars {
+  gap: 8px;
+}
+
+.rare-unarchived-card .rare-ranked-bars li > div {
+  padding: 8px 0;
+}
+
+.rare-unarchived-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 11px 13px;
+  color: #52666d;
+  background: #f2f8f6;
+  border-left: 3px solid #16806e;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+.rare-unarchived-note .lucide {
+  flex: 0 0 auto;
+  width: 16px;
+  margin-top: 2px;
+  color: #16806e;
+}
+
+.rare-record-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rare-record-search label {
+  display: flex;
+  align-items: center;
+  width: min(100%, 300px);
+  min-height: 40px;
+  gap: 8px;
+  padding: 0 11px;
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.rare-record-search label .lucide {
+  color: var(--muted);
+}
+
+.rare-record-search input {
+  width: 100%;
+  min-width: 0;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.rare-record-meta {
+  margin: -4px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rare-record-table table {
+  min-width: 1040px;
+}
+
+.rare-record-table th,
+.rare-record-table td {
+  vertical-align: middle;
+}
+
+.rare-record-table th:nth-child(1) {
+  width: 155px;
+}
+
+.rare-record-table th:nth-child(4) {
+  width: 180px;
+}
+
+.rare-record-table th:nth-child(5) {
+  width: 120px;
+}
+
+.rare-archive-status {
+  display: inline-flex;
+  padding: 3px 7px;
+  color: #6f4a19;
+  background: var(--amber-soft);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.rare-archive-status.is-archived {
+  color: var(--teal-dark);
+  background: var(--green-soft);
 }
 
 .summary-grid {
@@ -2886,6 +3963,545 @@ a.search-result-title:hover {
   }
 }
 
+/* 罕见病导出：置于响应式规则之后，确保打印页使用紧凑且完整的版式。 */
+@media print {
+  #rare-disease-content,
+  #rare-disease-content .rare-hero,
+  #rare-disease-content .rare-analysis-section,
+  #rare-disease-content .rare-analysis-group,
+  #rare-disease-content .rare-panel {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #rare-disease-content .rare-hero {
+    overflow: visible;
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  #rare-disease-content .rare-hero-heading,
+  #rare-disease-content .rare-section-heading,
+  #rare-disease-content .rare-brand-heading,
+  #rare-disease-content .rare-panel-heading {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  #rare-disease-content .rare-kpi-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2mm;
+    width: 100%;
+  }
+
+  #rare-disease-content .rare-kpi-card {
+    flex: 0 0 calc(50% - 0.6mm);
+    box-sizing: border-box;
+  }
+
+  #rare-disease-content .rare-kpi-card,
+  #rare-disease-content .rare-hero-trend,
+  #rare-disease-content .rare-trend-chart,
+  #rare-disease-content .rare-trend-insights {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #rare-disease-content .rare-trend-layout {
+    display: block;
+  }
+
+  #rare-disease-content .rare-trend-chart {
+    width: 145mm;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  #rare-disease-content .rare-chart-scroll,
+  #rare-disease-content .rare-chart-scroll svg {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #rare-disease-content .rare-trend-insight-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #rare-disease-content .rare-trend-insight-list li:nth-child(3) {
+    grid-column: auto;
+  }
+
+  #rare-disease-content .rare-analysis-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #rare-disease-content .rare-unarchived-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 5mm;
+  }
+
+  #controlled-drug-content,
+  #rare-disease-content {
+    display: grid;
+    gap: 2mm;
+  }
+
+  #controlled-drug-content .controlled-overview-band,
+  #rare-disease-content .rare-hero,
+  #rare-disease-content .rare-panel {
+    padding: 2mm;
+    border: 0.7pt solid #9bb6bc;
+    border-radius: 1.5mm;
+  }
+
+  #controlled-drug-content .controlled-overview-copy {
+    margin-bottom: 1.5mm;
+  }
+
+  #controlled-drug-content .controlled-overview-layout {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 1.8mm;
+  }
+
+  #controlled-drug-content .controlled-overview-table-card,
+  #controlled-drug-content .controlled-sales-panel {
+    min-height: 0;
+    padding: 1.5mm;
+    border: 0.6pt solid #b5c7cb;
+    border-radius: 1.2mm;
+  }
+
+  #controlled-drug-content .controlled-overview-table-card {
+    display: block;
+  }
+
+  #controlled-drug-content .controlled-overview-table,
+  #controlled-drug-content .controlled-overview-table table,
+  #controlled-drug-content .controlled-overview-table tbody {
+    height: auto;
+  }
+
+  #controlled-drug-content .controlled-overview-table tbody tr {
+    height: auto;
+  }
+
+  #controlled-drug-content .controlled-panel-heading {
+    margin-bottom: 1mm;
+  }
+
+  #controlled-drug-content .controlled-panel-heading h2 {
+    font-size: 8.4pt;
+  }
+
+  #controlled-drug-content .controlled-panel-heading span,
+  #controlled-drug-content .controlled-inline-list {
+    font-size: 5.8pt;
+  }
+
+  #controlled-drug-content .controlled-sales-chart {
+    width: 100%;
+    max-width: none;
+    gap: 1mm;
+  }
+
+  #controlled-drug-content .controlled-chart-legend {
+    gap: 0.8mm 2.3mm;
+  }
+
+  #controlled-drug-content .controlled-chart-legend span,
+  #controlled-drug-content .controlled-sales-chart > small {
+    font-size: 5.6pt;
+  }
+
+  #controlled-drug-content .controlled-chart-scroll {
+    overflow: visible;
+  }
+
+  #controlled-drug-content .controlled-chart-scroll svg {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  #controlled-drug-content .controlled-chart-axis,
+  #controlled-drug-content .controlled-chart-value-label,
+  #controlled-drug-content .controlled-chart-total-label {
+    font-size: 7px;
+  }
+
+  #controlled-drug-content .controlled-category-stack {
+    gap: 1.2mm;
+  }
+
+  #controlled-drug-content .controlled-category {
+    border: 0.7pt solid #9bb6bc;
+    border-radius: 1.2mm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #controlled-drug-content .controlled-category-title {
+    width: 100%;
+    min-height: 5.8mm;
+    padding: 0 2mm;
+  }
+
+  #controlled-drug-content .controlled-category-title h2 {
+    font-size: 8.2pt;
+  }
+
+  #controlled-drug-content .controlled-category-title span {
+    font-size: 5.8pt;
+  }
+
+  #controlled-drug-content .controlled-category-grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.92fr);
+    gap: 1.4mm;
+    padding: 1.5mm;
+  }
+
+  #controlled-drug-content .controlled-category-left {
+    gap: 1.2mm;
+  }
+
+  #controlled-drug-content .controlled-stat-row {
+    gap: 1mm;
+  }
+
+  #controlled-drug-content .controlled-stat {
+    min-height: 0;
+    padding: 1mm;
+    border-top-width: 1.2mm;
+    border-radius: 1mm;
+  }
+
+  #controlled-drug-content .controlled-stat strong {
+    font-size: 10pt;
+  }
+
+  #controlled-drug-content .controlled-stat span,
+  #controlled-drug-content .controlled-unarchived-list strong,
+  #controlled-drug-content .controlled-top-products strong,
+  #controlled-drug-content .controlled-top-products em,
+  #controlled-drug-content .controlled-note-stack,
+  #controlled-drug-content .controlled-action-list {
+    font-size: 5.6pt;
+    line-height: 1.18;
+  }
+
+  #controlled-drug-content .controlled-detail-panel {
+    min-height: 0;
+    gap: 1.2mm;
+    padding: 1.3mm;
+    border-radius: 1mm;
+  }
+
+  #controlled-drug-content .controlled-detail-heading {
+    padding-bottom: 0.8mm;
+  }
+
+  #controlled-drug-content .controlled-detail-heading h3 {
+    font-size: 6.8pt;
+  }
+
+  #controlled-drug-content .controlled-detail-heading span,
+  #controlled-drug-content .controlled-unarchived-list small,
+  #controlled-drug-content .controlled-top-products small {
+    font-size: 5.2pt;
+    line-height: 1.15;
+  }
+
+  #controlled-drug-content .controlled-unarchived-list,
+  #controlled-drug-content .controlled-top-products,
+  #controlled-drug-content .controlled-note-stack,
+  #controlled-drug-content .controlled-action-list {
+    gap: 0.9mm;
+    max-height: none;
+    overflow: visible;
+  }
+
+  #controlled-drug-content .controlled-unarchived-list article {
+    gap: 0.5mm;
+    padding: 0.8mm;
+    border-left-width: 1mm;
+    border-radius: 0.8mm;
+  }
+
+  #controlled-drug-content .controlled-top-products li {
+    grid-template-columns: 4mm minmax(0, 1fr) auto;
+    gap: 1mm;
+  }
+
+  #controlled-drug-content .controlled-rank {
+    width: 3.8mm;
+    height: 3.8mm;
+    font-size: 5pt;
+  }
+
+  #rare-disease-content .rare-hero {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  #rare-disease-content .rare-hero-heading,
+  #rare-disease-content .rare-section-heading,
+  #rare-disease-content .rare-brand-heading {
+    gap: 2mm;
+  }
+
+  #rare-disease-content .rare-hero-heading h2,
+  #rare-disease-content .rare-section-heading h2,
+  #rare-disease-content .rare-brand-heading h2 {
+    font-size: 10pt;
+  }
+
+  #rare-disease-content .rare-hero-heading p,
+  #rare-disease-content .rare-brand-heading p,
+  #rare-disease-content .rare-panel-heading p,
+  #rare-disease-content .rare-indication-detail p {
+    margin-top: 0.8mm;
+    font-size: 6.1pt;
+    line-height: 1.2;
+  }
+
+  #rare-disease-content .rare-hero-tools,
+  #rare-disease-content .rare-range-filter,
+  #rare-disease-content .rare-record-search,
+  #rare-disease-content .rare-unarchived-description,
+  #rare-disease-content .rare-unarchived-grid,
+  #rare-disease-content .rare-unarchived-note,
+  #rare-disease-content .rare-indication-detail,
+  #rare-disease-content .rare-record-meta {
+    display: none !important;
+  }
+
+  #rare-disease-content .rare-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    gap: 1.2mm;
+    margin-top: 2mm;
+  }
+
+  #rare-disease-content .rare-kpi-card {
+    min-height: 0;
+    padding: 1.3mm;
+    border-radius: 1mm;
+  }
+
+  #rare-disease-content .rare-kpi-card > span,
+  #rare-disease-content .rare-kpi-card strong em {
+    font-size: 5.8pt;
+  }
+
+  #rare-disease-content .rare-kpi-card strong {
+    margin-top: 1.3mm;
+    font-size: 14pt;
+  }
+
+  #rare-disease-content .rare-hero-trend {
+    margin-top: 2mm;
+    padding-top: 2mm;
+  }
+
+  #rare-disease-content .rare-hero-trend .rare-panel-heading {
+    margin-bottom: 1.2mm;
+  }
+
+  #rare-disease-content .rare-trend-layout {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    gap: 1.6mm;
+  }
+
+  #rare-disease-content .rare-trend-chart,
+  #rare-disease-content .rare-trend-insights,
+  #rare-disease-content .rare-hero-trend,
+  #rare-disease-content .rare-trend-layout > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #rare-disease-content .rare-chart-legend {
+    gap: 0.7mm 2.2mm;
+  }
+
+  #rare-disease-content .rare-chart-legend span {
+    font-size: 5.6pt;
+  }
+
+  #rare-disease-content .rare-chart-scroll {
+    overflow: visible;
+  }
+
+  #rare-disease-content .rare-chart-scroll svg {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  #rare-disease-content .rare-chart-axis,
+  #rare-disease-content .rare-chart-unit,
+  #rare-disease-content .rare-chart-sales-label,
+  #rare-disease-content .rare-chart-bar-label {
+    font-size: 7px;
+  }
+
+  #rare-disease-content .rare-trend-insights {
+    gap: 1.1mm;
+    padding: 1.2mm;
+    border-radius: 1mm;
+  }
+
+  #rare-disease-content .rare-trend-insights-heading h3,
+  #rare-disease-content .rare-unarchived-card-heading h3 {
+    font-size: 7.2pt;
+  }
+
+  #rare-disease-content .rare-trend-insights-heading p,
+  #rare-disease-content .rare-trend-insight-note,
+  #rare-disease-content .rare-trend-insight-list small,
+  #rare-disease-content .rare-trend-insight-list strong,
+  #rare-disease-content .rare-trend-insight-list em {
+    font-size: 5pt;
+    line-height: 1.15;
+  }
+
+  #rare-disease-content .rare-trend-insight-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.7mm;
+  }
+
+  #rare-disease-content .rare-trend-insight-list li {
+    grid-template-columns: 4.2mm minmax(0, 1fr) auto;
+    gap: 0.9mm;
+    padding: 0.8mm;
+    border-radius: 0.8mm;
+  }
+
+  #rare-disease-content .rare-trend-insight-icon {
+    width: 4.2mm;
+    height: 4.2mm;
+  }
+
+  #rare-disease-content .rare-analysis-section,
+  #rare-disease-content .rare-analysis-group {
+    gap: 1.4mm;
+  }
+
+  #rare-disease-content .rare-brand-section {
+    padding-top: 1.5mm;
+  }
+
+  #rare-disease-content .rare-analysis-grid {
+    gap: 1.5mm;
+  }
+
+  #rare-disease-content .rare-analysis-card,
+  #rare-disease-content .rare-records-panel,
+  #rare-disease-content .rare-unarchived-section {
+    min-height: 0;
+    padding: 1.4mm;
+  }
+
+  #rare-disease-content .rare-panel-heading {
+    margin-bottom: 1mm;
+  }
+
+  #rare-disease-content .rare-panel-heading h2 {
+    font-size: 7.2pt;
+  }
+
+  #rare-disease-content .rare-donut-area {
+    grid-template-columns: 30mm minmax(0, 1fr);
+    gap: 2mm;
+    min-height: 0;
+  }
+
+  #rare-disease-content .rare-donut {
+    width: 28mm;
+  }
+
+  #rare-disease-content .rare-donut::after {
+    inset: 6mm;
+  }
+
+  #rare-disease-content .rare-donut strong {
+    font-size: 9pt;
+  }
+
+  #rare-disease-content .rare-donut span,
+  #rare-disease-content .rare-donut-legend b,
+  #rare-disease-content .rare-donut-legend em,
+  #rare-disease-content .rare-bar-label,
+  #rare-disease-content .rare-bar-track + strong {
+    font-size: 5.2pt;
+  }
+
+  #rare-disease-content .rare-donut-legend,
+  #rare-disease-content .rare-ranked-bars {
+    gap: 0.6mm;
+  }
+
+  #rare-disease-content .rare-donut-legend button,
+  #rare-disease-content .rare-donut-legend > span,
+  #rare-disease-content .rare-ranked-bars li > button,
+  #rare-disease-content .rare-ranked-bars li > div {
+    min-height: 0;
+    gap: 1mm;
+    padding: 0.3mm 0;
+  }
+
+  #rare-disease-content .rare-bar-rank {
+    width: 3.8mm;
+    height: 3.8mm;
+    font-size: 5pt;
+  }
+
+  #rare-disease-content .rare-unarchived-section {
+    gap: 1mm;
+  }
+
+  #rare-disease-content .rare-unarchived-summary {
+    gap: 1mm;
+  }
+
+  #rare-disease-content .rare-unarchived-summary > div {
+    padding: 0.9mm;
+    border-radius: 0.8mm;
+  }
+
+  #rare-disease-content .rare-unarchived-summary span,
+  #rare-disease-content .rare-unarchived-summary em {
+    font-size: 5.3pt;
+  }
+
+  #rare-disease-content .rare-unarchived-summary strong {
+    margin-top: 0.8mm;
+    font-size: 10pt;
+  }
+
+  #rare-disease-content .rare-record-table tbody tr:nth-child(n + 7) {
+    display: none;
+  }
+
+  #rare-disease-content .rare-record-table th,
+  #rare-disease-content .rare-record-table td {
+    padding: 0.4mm 0.45mm;
+    font-size: 4.9pt;
+    line-height: 1.08;
+  }
+}
+
 @media print {
   @page {
     margin: 6mm;
@@ -3492,6 +5108,2343 @@ a.search-result-title:hover {
   body.is-printing-pdf .guide-nav,
   body.is-printing-pdf .analysis-launcher,
   body.is-printing-pdf #noticeHost {
+    display: none !important;
+  }
+}
+
+/* Welcome and research survey workspace */
+.user-greeting {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.user-greeting:hover {
+  color: var(--text);
+  text-decoration: none;
+  border-color: var(--line-strong);
+}
+
+.user-greeting small {
+  padding: 2px 6px;
+  color: var(--teal-dark);
+  background: var(--green-soft);
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.user-greeting.is-static {
+  cursor: default;
+}
+
+.overview-band > div:first-child {
+  min-width: 0;
+}
+
+.research-progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.research-progress strong {
+  color: var(--teal-dark);
+}
+
+.research-import-hint {
+  margin: 9px 0 0;
+  color: var(--muted);
+}
+
+.survey-entry-card {
+  display: flex;
+  flex: 0 0 250px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 84px;
+  padding: 16px 18px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #14826d, #0f6858);
+  border-radius: 10px;
+  box-shadow: 0 12px 24px rgba(15, 104, 88, 0.2);
+}
+
+.survey-entry-card:hover {
+  color: #ffffff;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.survey-entry-card span {
+  display: grid;
+  gap: 2px;
+}
+
+.survey-entry-card small,
+.survey-entry-card em {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.survey-entry-card strong {
+  font-size: 17px;
+}
+
+.survey-entry-card > .lucide {
+  width: 23px;
+  height: 23px;
+}
+
+.welcome-main {
+  display: grid;
+  gap: 22px;
+  max-width: 1080px;
+  margin: 44px auto 0;
+}
+
+.welcome-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 310px;
+  padding: 48px 54px;
+  overflow: hidden;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 78% 30%, rgba(133, 229, 200, 0.38), transparent 18%),
+    linear-gradient(125deg, #153d72, #117968);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.welcome-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 620px;
+}
+
+.welcome-hero .eyebrow {
+  color: #bceee2;
+}
+
+.welcome-hero h2 {
+  margin: 0;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.18;
+}
+
+.welcome-hero p {
+  max-width: 520px;
+  margin: 16px 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 17px;
+}
+
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.welcome-actions .button-primary {
+  color: var(--teal-dark);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.welcome-actions .button-primary:hover {
+  background: #e9fffa;
+}
+
+.welcome-actions .button-ghost {
+  color: #ffffff;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.48);
+}
+
+.welcome-mark {
+  display: grid;
+  width: 172px;
+  height: 172px;
+  place-items: center;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 50%;
+  transform: rotate(-8deg);
+}
+
+.welcome-mark .lucide {
+  width: 82px;
+  height: 82px;
+  stroke-width: 1.25;
+}
+
+.welcome-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.welcome-shortcut {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  min-height: 112px;
+  padding: 18px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(25, 50, 55, 0.05);
+}
+
+.welcome-shortcut:hover {
+  color: var(--text);
+  text-decoration: none;
+  border-color: #9ecfc4;
+  box-shadow: var(--shadow);
+}
+
+.welcome-shortcut-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: var(--teal-dark);
+  background: var(--green-soft);
+  border-radius: 10px;
+}
+
+.welcome-shortcut > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+}
+
+.welcome-shortcut small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.welcome-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.survey-shell main {
+  display: grid;
+  gap: 16px;
+}
+
+.survey-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--teal);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.survey-overview h2 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.survey-overview p {
+  max-width: 600px;
+  margin: 7px 0 0;
+  color: var(--muted);
+}
+
+.survey-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(76px, 1fr));
+  min-width: 420px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.survey-stat-grid > div {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  text-align: center;
+  border-left: 1px solid var(--line);
+}
+
+.survey-stat-grid > div:first-child {
+  border-left: 0;
+}
+
+.survey-stat-grid strong {
+  color: var(--teal-dark);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.survey-stat-grid span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.survey-view-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  width: fit-content;
+  background: #e6eef0;
+  border-radius: 9px;
+}
+
+.survey-view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 14px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.survey-view-tab.is-active {
+  color: var(--teal-dark);
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(25, 50, 55, 0.1);
+}
+
+.survey-workspace {
+  display: grid;
+  grid-template-columns: minmax(244px, 0.3fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.survey-record-nav,
+.survey-form-card,
+.survey-list-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.survey-record-nav {
+  position: sticky;
+  top: 18px;
+  overflow: hidden;
+}
+
+.survey-record-nav-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.survey-record-nav-heading small {
+  color: var(--muted);
+}
+
+.survey-record-list {
+  max-height: calc(100vh - 212px);
+  overflow: auto;
+}
+
+.survey-record-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 64px;
+  padding: 9px 12px;
+  color: var(--text);
+  text-align: left;
+  background: var(--surface);
+  border: 0;
+  border-bottom: 1px solid #edf1f2;
+  cursor: pointer;
+}
+
+.survey-record-item:hover,
+.survey-record-item.is-active {
+  background: #f0faf8;
+}
+
+.survey-record-item.is-active {
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+
+.survey-record-item > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.survey-record-item strong,
+.survey-record-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.survey-record-item small {
+  color: var(--muted);
+}
+
+.survey-record-item > .lucide {
+  color: var(--teal);
+}
+
+.survey-record-index {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  color: var(--muted);
+  background: #edf2f4;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.survey-form-card {
+  min-width: 0;
+  padding: 28px;
+}
+
+.survey-form-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.survey-form-heading h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.survey-form-heading p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.completion-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  min-height: 26px;
+  padding: 3px 8px;
+  color: #9a5b10;
+  background: var(--amber-soft);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.completion-badge.is-complete {
+  color: #176b4e;
+  background: var(--green-soft);
+}
+
+.research-form {
+  display: grid;
+}
+
+.research-form-section {
+  padding: 25px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.research-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 18px;
+}
+
+.research-section-heading > span {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #ffffff;
+  background: var(--teal-dark);
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.research-section-heading > div {
+  min-width: 0;
+}
+
+.research-section-heading h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.research-section-heading p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.research-contact-change {
+  margin-left: auto;
+}
+
+.research-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 18px;
+}
+
+.research-field-grid-readonly {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.research-field,
+.research-readonly-field {
+  display: grid;
+  gap: 6px;
+}
+
+.research-field > span,
+.research-readonly-field > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.research-field input,
+.research-field select,
+.research-field textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 10px;
+  color: var(--text);
+  background: #ffffff;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  outline: 0;
+}
+
+.research-field textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
+.research-field input:focus,
+.research-field select:focus,
+.research-field textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(20, 130, 109, 0.12);
+}
+
+.research-readonly-field {
+  min-height: 66px;
+  padding: 10px 12px;
+  background: #f6f9f9;
+  border: 1px solid #e2eaeb;
+  border-radius: 7px;
+}
+
+.research-readonly-field strong {
+  overflow-wrap: anywhere;
+}
+
+.research-field-full {
+  margin-top: 16px;
+}
+
+.research-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 23px;
+}
+
+.research-form-actions > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.survey-list-card {
+  padding: 20px;
+}
+
+.survey-list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.survey-list-toolbar .control-search {
+  min-width: min(100%, 360px);
+  flex: 1 1 320px;
+}
+
+.survey-mine-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.survey-list-toolbar > strong {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.survey-list-table th {
+  white-space: nowrap;
+}
+
+.survey-list-table td {
+  vertical-align: middle;
+}
+
+.survey-list-table td:first-child strong,
+.survey-list-table td:first-child small {
+  display: block;
+}
+
+.survey-list-table td:first-child small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.survey-list-empty {
+  padding: 34px !important;
+  color: var(--muted);
+  text-align: center;
+}
+
+.survey-open-record {
+  min-height: 32px;
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+.survey-missing-state > div {
+  display: grid;
+  max-width: 580px;
+  gap: 12px;
+  padding: 30px;
+  text-align: center;
+}
+
+.survey-missing-state .lucide {
+  width: 40px;
+  height: 40px;
+  justify-self: center;
+  color: var(--teal-dark);
+}
+
+.survey-missing-state h2,
+.survey-missing-state p {
+  margin: 0;
+}
+
+.survey-missing-state p {
+  color: var(--muted);
+}
+
+.survey-missing-state .button {
+  justify-self: center;
+}
+
+.contact-change-dialog {
+  width: min(560px, calc(100% - 30px));
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 20px 68px rgba(15, 33, 40, 0.28);
+}
+
+.contact-change-dialog::backdrop {
+  background: rgba(15, 32, 40, 0.46);
+}
+
+.contact-change-dialog form {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}
+
+.contact-dialog-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.contact-dialog-heading h2 {
+  margin: 0;
+}
+
+.contact-change-dialog p {
+  margin: -4px 0 0;
+  color: var(--muted);
+}
+
+.contact-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+@media (max-width: 1040px) {
+  .survey-overview,
+  .overview-band {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .survey-entry-card {
+    flex-basis: auto;
+  }
+
+  .survey-stat-grid {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .research-field-grid-readonly {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .user-greeting span {
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .welcome-main {
+    margin-top: 20px;
+  }
+
+  .welcome-hero {
+    min-height: auto;
+    padding: 32px 26px;
+  }
+
+  .welcome-mark {
+    display: none;
+  }
+
+  .welcome-shortcuts,
+  .survey-workspace,
+  .research-field-grid,
+  .research-field-grid-readonly {
+    grid-template-columns: 1fr;
+  }
+
+  .survey-record-nav {
+    position: static;
+  }
+
+  .survey-record-list {
+    display: flex;
+    max-height: none;
+    overflow: auto;
+  }
+
+  .survey-record-item {
+    min-width: 220px;
+    border-bottom: 0;
+    border-right: 1px solid #edf1f2;
+  }
+
+  .survey-form-card {
+    padding: 20px;
+  }
+
+  .survey-form-heading,
+  .research-form-actions,
+  .survey-list-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .research-contact-change,
+  .survey-list-toolbar > strong {
+    margin-left: 0;
+  }
+
+  .research-form-actions > div {
+    justify-content: stretch;
+  }
+
+  .research-form-actions > div .button {
+    flex: 1 1 auto;
+  }
+
+  .survey-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .survey-stat-grid > div:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .survey-stat-grid > div:nth-child(4) {
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media print {
+  .survey-record-nav,
+  .survey-view-tabs,
+  .research-form-actions,
+  .survey-list-toolbar,
+  .contact-change-dialog,
+  .user-greeting,
+  .topbar-actions .button {
+    display: none !important;
+  }
+
+  .survey-shell .app-shell,
+  .survey-workspace {
+    display: block;
+    width: 100%;
+  }
+
+  .survey-form-card,
+  .survey-overview,
+  .survey-list-card {
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .rare-trend-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1280px) {
+  .controlled-overview-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .rare-kpi-grid,
+  .rare-analysis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rare-unarchived-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rare-unarchived-list-card {
+    grid-column: 1 / -1;
+  }
+
+  .rare-indication-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .rare-disease-facts {
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 620px) {
+  .rare-hero,
+  .rare-panel,
+  .rare-indication-detail {
+    padding: 16px;
+  }
+
+  .rare-hero-heading,
+  .rare-section-heading,
+  .rare-brand-heading,
+  .rare-panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rare-hero-tools {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .rare-overview-range {
+    width: 100%;
+  }
+
+  .rare-overview-range select {
+    flex: 1 1 0;
+  }
+
+  .rare-range-filter {
+    width: 100%;
+  }
+
+  .rare-range-filter select {
+    flex: 1 1 0;
+  }
+
+  .rare-panel-heading p {
+    text-align: left;
+  }
+
+  .rare-kpi-grid,
+  .rare-analysis-grid,
+  .rare-disease-facts,
+  .rare-unarchived-summary,
+  .rare-unarchived-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rare-unarchived-list-card {
+    grid-column: auto;
+  }
+
+  .rare-kpi-card {
+    min-height: 92px;
+  }
+
+  .rare-donut-area {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .rare-donut-legend {
+    width: 100%;
+  }
+
+  .rare-record-search {
+    width: 100%;
+  }
+
+  .rare-record-search label {
+    flex: 1;
+    width: auto;
+  }
+
+  .rare-ranked-bars li > button,
+  .rare-ranked-bars li > div {
+    grid-template-columns: 24px minmax(72px, 1fr) minmax(42px, 1fr) auto;
+  }
+}
+
+/* 罕见病导出：最终覆盖响应式规则，避免图表和结论卡超出打印页。 */
+@media print {
+  #rare-disease-content .rare-hero {
+    overflow: visible;
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  #rare-disease-content .rare-hero-heading,
+  #rare-disease-content .rare-section-heading,
+  #rare-disease-content .rare-brand-heading,
+  #rare-disease-content .rare-panel-heading {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  #rare-disease-content .rare-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #rare-disease-content .rare-kpi-card,
+  #rare-disease-content .rare-hero-trend,
+  #rare-disease-content .rare-trend-chart,
+  #rare-disease-content .rare-trend-insights {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #rare-disease-content .rare-trend-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #rare-disease-content .rare-trend-chart {
+    width: min(100%, 150mm);
+    justify-self: center;
+  }
+
+  #rare-disease-content .rare-chart-scroll,
+  #rare-disease-content .rare-chart-scroll svg {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #rare-disease-content .rare-trend-insight-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #rare-disease-content .rare-trend-insight-list li:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  #rare-disease-content .rare-analysis-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #rare-disease-content .rare-unarchived-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* 集采原研、HIV药品：共用的宽屏经营分析布局 */
+.specialty-main {
+  --specialty-primary: #177a68;
+  --specialty-strong: #064f45;
+  --specialty-soft: #eaf7f3;
+  --specialty-muted: #edf4f3;
+  display: grid;
+  gap: 18px;
+}
+
+.procurement-main {
+  --specialty-primary: #245ca8;
+  --specialty-strong: #123e76;
+  --specialty-soft: #edf4ff;
+  --specialty-muted: #eef4fc;
+}
+
+.hiv-main {
+  --specialty-primary: #117a68;
+  --specialty-strong: #005d50;
+  --specialty-soft: #eaf8f4;
+  --specialty-muted: #eff8f6;
+}
+
+.specialty-hero,
+.specialty-panel {
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.specialty-hero {
+  overflow: hidden;
+  padding: 24px 26px 22px;
+  border-top: 5px solid var(--specialty-primary);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--specialty-soft) 92%, white) 0, transparent 32%),
+    var(--surface);
+}
+
+.specialty-hero-heading,
+.specialty-section-heading,
+.specialty-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.specialty-hero-heading h2,
+.specialty-section-heading h2,
+.specialty-panel-heading h2 {
+  margin: 2px 0 0;
+  color: #071e35;
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+.specialty-hero-heading > div:first-child {
+  max-width: 940px;
+}
+
+.specialty-hero-heading p,
+.specialty-section-heading p,
+.specialty-panel-heading p {
+  margin: 8px 0 0;
+  color: #375463;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.specialty-hero-heading p strong {
+  color: var(--specialty-strong);
+  font-size: 18px;
+}
+
+.specialty-hero-tools {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.specialty-range-filter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  gap: 8px;
+  padding: 0 10px 0 12px;
+  color: #173b4b;
+  background: #ffffff;
+  border: 1px solid #cbdfdf;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.specialty-range-filter > span,
+.specialty-source-badge,
+.specialty-kpi > span,
+.specialty-chart-legend span,
+.specialty-note,
+.specialty-watch-list small,
+.specialty-product-list small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.specialty-range-filter svg,
+.specialty-source-badge svg,
+.specialty-kpi svg {
+  width: 16px;
+  height: 16px;
+  color: var(--specialty-primary);
+  stroke-width: 2.4;
+}
+
+.specialty-range-filter select {
+  min-width: 76px;
+  padding: 4px 3px;
+  color: var(--specialty-strong);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #b8d1d0;
+  outline: 0;
+  font: inherit;
+  font-size: 13px;
+}
+
+.specialty-range-filter b {
+  color: #617e8b;
+}
+
+.specialty-source-badge {
+  padding: 7px 10px;
+  color: var(--specialty-strong);
+  background: color-mix(in srgb, var(--specialty-soft) 68%, white);
+  border: 1px solid color-mix(in srgb, var(--specialty-primary) 24%, white);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.specialty-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.specialty-kpi {
+  display: grid;
+  min-height: 112px;
+  align-content: space-between;
+  gap: 10px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid color-mix(in srgb, var(--specialty-primary) 20%, #d4e5e5);
+  border-radius: 10px;
+}
+
+.specialty-kpi > span {
+  color: #245162;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.specialty-kpi strong {
+  color: var(--specialty-strong);
+  font-size: clamp(27px, 2vw, 38px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.specialty-kpi strong em,
+.specialty-rank-list strong em,
+.specialty-product-list b em {
+  margin-left: 4px;
+  font-size: 13px;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.specialty-trend-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #cfe1df;
+}
+
+.specialty-panel-heading {
+  min-height: 34px;
+}
+
+.specialty-panel-heading h2 {
+  font-size: 20px;
+}
+
+.specialty-panel-heading > i {
+  width: 22px;
+  height: 22px;
+  color: var(--specialty-primary);
+}
+
+.specialty-panel-heading p {
+  margin: 3px 0 0;
+  text-align: right;
+}
+
+.specialty-trend-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(330px, 0.76fr);
+  gap: 16px;
+  align-items: stretch;
+  margin-top: 12px;
+}
+
+.specialty-chart-wrap {
+  display: grid;
+  min-width: 0;
+  min-height: 330px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: 4px 8px 8px 0;
+}
+
+.specialty-trend-chart {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 310px;
+  overflow: visible;
+}
+
+.specialty-chart-axis-title,
+.specialty-chart-axis,
+.specialty-chart-year,
+.specialty-chart-value {
+  fill: #254d60;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.specialty-chart-axis-title {
+  fill: #183846;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.specialty-chart-year {
+  fill: #2a4f61;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.specialty-chart-value {
+  fill: var(--specialty-strong);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.specialty-chart-grid {
+  stroke: #cfe0e5;
+  stroke-dasharray: 5 5;
+  stroke-width: 1;
+}
+
+.specialty-chart-baseline {
+  stroke: #84a4af;
+  stroke-width: 1.3;
+}
+
+.specialty-chart-bar {
+  fill: color-mix(in srgb, var(--specialty-primary) 78%, #5790df);
+  stroke: var(--specialty-primary);
+  stroke-width: 1;
+}
+
+.specialty-chart-bar.is-muted {
+  fill: color-mix(in srgb, var(--specialty-primary) 42%, #8bb2df);
+  stroke-dasharray: 3 2;
+}
+
+.specialty-chart-line {
+  fill: none;
+  stroke: #f08313;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.specialty-chart-point {
+  fill: #ffffff;
+  stroke: #f08313;
+  stroke-width: 3;
+}
+
+.specialty-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 0 0 0 76px;
+  color: #355766;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.specialty-chart-legend i {
+  display: inline-block;
+  width: 13px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--specialty-primary);
+}
+
+.specialty-chart-legend i.is-line {
+  width: 17px;
+  height: 3px;
+  border-radius: 999px;
+  background: #f08313;
+}
+
+.specialty-insight-card {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 17px;
+  background: linear-gradient(145deg, #ffffff, var(--specialty-soft));
+  border: 1px solid color-mix(in srgb, var(--specialty-primary) 25%, #d4e5e5);
+  border-radius: 11px;
+}
+
+.specialty-insight-card h3 {
+  margin: 0;
+  color: #0b263d;
+  font-size: 20px;
+}
+
+.specialty-insight-card > p {
+  margin: 0 0 3px;
+  color: #345464;
+  font-size: 14px;
+}
+
+.specialty-insight-card > p strong {
+  color: var(--specialty-strong);
+  font-size: 20px;
+}
+
+.specialty-insight-card > small {
+  padding-top: 4px;
+  color: #426574;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.specialty-insight-row {
+  display: grid;
+  grid-template-columns: 35px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #d7e6e6;
+  border-radius: 8px;
+}
+
+.specialty-insight-row > span,
+.specialty-attention-list article > span {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  place-items: center;
+  color: var(--specialty-primary);
+  background: var(--specialty-soft);
+  border-radius: 50%;
+}
+
+.specialty-insight-row svg,
+.specialty-attention-list svg {
+  width: 18px;
+  height: 18px;
+}
+
+.specialty-insight-row div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.specialty-insight-row small {
+  color: #436372;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.specialty-insight-row strong {
+  overflow: hidden;
+  color: #092c40;
+  font-size: 14px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.specialty-analysis-section {
+  display: grid;
+  gap: 12px;
+}
+
+.specialty-section-heading {
+  padding: 3px 2px 0;
+}
+
+.specialty-section-heading h2 {
+  font-size: 24px;
+}
+
+.specialty-section-heading p {
+  max-width: 580px;
+  text-align: right;
+}
+
+.specialty-analysis-grid,
+.specialty-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.specialty-rank-panel,
+.specialty-product-panel,
+.specialty-watch-panel,
+.specialty-coverage-panel,
+.specialty-attention-panel,
+.specialty-record-section {
+  padding: 19px 20px;
+}
+
+.specialty-rank-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.specialty-rank-list li {
+  display: grid;
+  grid-template-columns: 27px minmax(92px, 0.95fr) minmax(90px, 1.35fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 29px;
+}
+
+.specialty-rank-index {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  color: #ffffff;
+  background: var(--specialty-primary);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.specialty-rank-list li:nth-child(n + 4) .specialty-rank-index {
+  color: #405e6c;
+  background: #d8e6e7;
+}
+
+.specialty-rank-list b {
+  overflow: hidden;
+  color: #123446;
+  font-size: 14px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.specialty-rank-track {
+  height: 10px;
+  overflow: hidden;
+  background: #e5eeee;
+  border-radius: 99px;
+}
+
+.specialty-rank-track i {
+  display: block;
+  width: var(--rank-width);
+  height: 100%;
+  background: linear-gradient(90deg, var(--specialty-strong), #59baa8);
+  border-radius: inherit;
+}
+
+.procurement-main .specialty-rank-track i {
+  background: linear-gradient(90deg, #184d9c, #65a7e0);
+}
+
+.specialty-rank-list strong,
+.specialty-product-list b {
+  color: var(--specialty-strong);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.specialty-product-list,
+.specialty-watch-list,
+.specialty-attention-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.specialty-product-list article {
+  display: grid;
+  grid-template-columns: 29px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 7px 9px;
+  background: #f8fbfb;
+  border: 1px solid #dce9e8;
+  border-radius: 8px;
+}
+
+.specialty-product-list article > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  color: #ffffff;
+  background: var(--specialty-primary);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.specialty-product-list div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.specialty-product-list strong {
+  overflow: hidden;
+  color: #103246;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.specialty-product-list small,
+.specialty-watch-list small {
+  overflow: hidden;
+  color: #52717d;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.specialty-watch-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 55px;
+  padding: 10px;
+  background: #f9fbfc;
+  border: 1px solid #dce8e9;
+  border-radius: 8px;
+}
+
+.specialty-watch-list article > div:first-child {
+  display: grid;
+  grid-template-columns: 31px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.specialty-watch-icon {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  color: #cb5a17;
+  background: #fff1e8;
+  border-radius: 50%;
+}
+
+.specialty-watch-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.specialty-watch-list strong,
+.specialty-watch-list b {
+  display: block;
+  overflow: hidden;
+  color: #143449;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.specialty-watch-list article > div:last-child {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 3px;
+  justify-items: end;
+}
+
+.specialty-watch-list b {
+  color: #b44c15;
+}
+
+.specialty-note {
+  margin: 13px 0 0;
+  color: #39606d;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.specialty-note svg {
+  width: 16px;
+  height: 16px;
+  color: var(--specialty-primary);
+}
+
+.specialty-record-section {
+  display: grid;
+  gap: 13px;
+}
+
+.specialty-record-table {
+  margin: 0;
+}
+
+.specialty-record-table table {
+  min-width: 740px;
+}
+
+.specialty-record-table th,
+.specialty-record-table td {
+  padding: 11px 13px;
+  vertical-align: middle;
+}
+
+.specialty-record-table thead th {
+  color: #24465a;
+  background: var(--specialty-muted);
+  font-size: 13px;
+}
+
+.specialty-record-table tbody th {
+  color: #103149;
+  font-size: 14px;
+}
+
+.specialty-record-table tbody td:last-child {
+  color: var(--specialty-strong);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.specialty-record-table tbody td:last-child strong {
+  font-size: 15px;
+}
+
+.hiv-bottom-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.specialty-coverage-table {
+  overflow-x: auto;
+  margin-top: 16px;
+  border: 1px solid #d5e6e4;
+  border-radius: 8px;
+}
+
+.specialty-coverage-table table {
+  width: 100%;
+  min-width: 550px;
+  border-collapse: collapse;
+}
+
+.specialty-coverage-table th,
+.specialty-coverage-table td {
+  padding: 10px 11px;
+  color: #244a5b;
+  border-bottom: 1px solid #dce9e8;
+  font-size: 13px;
+  text-align: left;
+}
+
+.specialty-coverage-table tbody tr:last-child th,
+.specialty-coverage-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.specialty-coverage-table thead th {
+  color: #123848;
+  background: var(--specialty-muted);
+  font-weight: 900;
+}
+
+.specialty-coverage-table tbody th {
+  min-width: 180px;
+}
+
+.specialty-coverage-table tbody th b {
+  display: block;
+  color: var(--specialty-strong);
+  font-size: 14px;
+}
+
+.specialty-coverage-table tbody th span {
+  display: block;
+  margin-top: 2px;
+  color: #66808a;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.specialty-coverage-status {
+  display: inline-block;
+  padding: 3px 7px;
+  color: var(--specialty-strong);
+  background: var(--specialty-soft);
+  border-radius: 999px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.specialty-attention-list article {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  background: #f8fbfb;
+  border: 1px solid #dce9e8;
+  border-radius: 8px;
+}
+
+.specialty-attention-list article > div {
+  display: grid;
+  gap: 2px;
+}
+
+.specialty-attention-list small {
+  color: var(--specialty-primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.specialty-attention-list strong {
+  color: #103149;
+  font-size: 15px;
+}
+
+.specialty-attention-list p {
+  margin: 1px 0 0;
+  color: #506e79;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  .specialty-hero-heading,
+  .specialty-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .specialty-hero-tools {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .specialty-section-heading p {
+    max-width: none;
+    text-align: left;
+  }
+
+  .specialty-trend-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .specialty-insight-card {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .specialty-insight-card > .eyebrow,
+  .specialty-insight-card h3,
+  .specialty-insight-card > p,
+  .specialty-insight-card > small {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .specialty-hero {
+    padding: 18px 15px;
+  }
+
+  .specialty-hero-heading h2,
+  .specialty-section-heading h2 {
+    font-size: 23px;
+  }
+
+  .specialty-hero-tools,
+  .specialty-range-filter {
+    width: 100%;
+  }
+
+  .specialty-range-filter {
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .specialty-kpi-grid,
+  .specialty-analysis-grid,
+  .specialty-bottom-grid,
+  .hiv-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .specialty-kpi {
+    min-height: 92px;
+  }
+
+  .specialty-trend-chart {
+    height: 264px;
+  }
+
+  .specialty-chart-wrap {
+    min-height: 280px;
+  }
+
+  .specialty-chart-legend {
+    padding-left: 8px;
+  }
+
+  .specialty-insight-card {
+    grid-template-columns: 1fr;
+  }
+
+  .specialty-insight-card > .eyebrow,
+  .specialty-insight-card h3,
+  .specialty-insight-card > p,
+  .specialty-insight-card > small {
+    grid-column: auto;
+  }
+
+  .specialty-rank-list li {
+    grid-template-columns: 27px minmax(80px, 0.9fr) minmax(68px, 1fr) auto;
+    gap: 6px;
+  }
+
+  .specialty-rank-list strong {
+    font-size: 13px;
+  }
+
+  .specialty-watch-list article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .specialty-watch-list article > div:last-child {
+    align-self: stretch;
+    justify-items: start;
+  }
+}
+
+@media print {
+  #procurement-originator-content,
+  #hiv-content {
+    gap: 3mm;
+  }
+
+  #procurement-originator-content .specialty-hero,
+  #hiv-content .specialty-hero,
+  #procurement-originator-content .specialty-panel,
+  #hiv-content .specialty-panel {
+    box-shadow: none;
+  }
+
+  #procurement-originator-content .specialty-hero,
+  #hiv-content .specialty-hero {
+    padding: 4mm;
+  }
+
+  #procurement-originator-content .specialty-hero-heading,
+  #hiv-content .specialty-hero-heading {
+    align-items: flex-start;
+  }
+
+  #procurement-originator-content .specialty-hero-tools,
+  #hiv-content .specialty-hero-tools {
+    display: none;
+  }
+
+  #procurement-originator-content .specialty-kpi-grid,
+  #hiv-content .specialty-kpi-grid {
+    gap: 2mm;
+    margin-top: 3mm;
+  }
+
+  #procurement-originator-content .specialty-kpi,
+  #hiv-content .specialty-kpi {
+    min-height: 21mm;
+    padding: 3mm;
+  }
+
+  #procurement-originator-content .specialty-kpi strong,
+  #hiv-content .specialty-kpi strong {
+    font-size: 21px;
+  }
+
+  #procurement-originator-content .specialty-trend-section,
+  #hiv-content .specialty-trend-section {
+    margin-top: 3mm;
+    padding-top: 3mm;
+  }
+
+  #procurement-originator-content .specialty-trend-layout,
+  #hiv-content .specialty-trend-layout {
+    grid-template-columns: minmax(0, 1fr) 55mm;
+    gap: 3mm;
+  }
+
+  #procurement-originator-content .specialty-chart-wrap,
+  #hiv-content .specialty-chart-wrap {
+    min-height: 64mm;
+  }
+
+  #procurement-originator-content .specialty-trend-chart,
+  #hiv-content .specialty-trend-chart {
+    height: 62mm;
+  }
+
+  #procurement-originator-content .specialty-insight-card,
+  #hiv-content .specialty-insight-card {
+    gap: 1.5mm;
+    padding: 3mm;
+  }
+
+  #procurement-originator-content .specialty-analysis-grid,
+  #hiv-content .specialty-analysis-grid,
+  #procurement-originator-content .specialty-bottom-grid,
+  #hiv-content .specialty-bottom-grid {
+    gap: 3mm;
+  }
+
+  #procurement-originator-content .specialty-rank-panel,
+  #hiv-content .specialty-rank-panel,
+  #procurement-originator-content .specialty-product-panel,
+  #hiv-content .specialty-product-panel,
+  #procurement-originator-content .specialty-watch-panel,
+  #hiv-content .specialty-watch-panel,
+  #procurement-originator-content .specialty-coverage-panel,
+  #hiv-content .specialty-coverage-panel,
+  #procurement-originator-content .specialty-attention-panel,
+  #hiv-content .specialty-attention-panel {
+    padding: 3mm;
+  }
+}
+
+/* 数据助手：面向已存经营数据的可追溯问答面板 */
+.data-assistant-launcher {
+  position: fixed;
+  right: 26px;
+  bottom: 100px;
+  z-index: 41;
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+.data-assistant-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  gap: 9px;
+  padding: 0 18px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #126e62, #0e4b75);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  border-radius: 999px;
+  box-shadow: 0 16px 34px rgba(11, 83, 101, 0.3);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.data-assistant-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 19px 36px rgba(11, 83, 101, 0.36);
+}
+
+.data-assistant-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.data-assistant-panel {
+  display: grid;
+  width: min(410px, calc(100vw - 32px));
+  max-height: min(670px, calc(100vh - 132px));
+  grid-template-rows: auto minmax(160px, 1fr) auto auto;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #bed8d7;
+  border-radius: 14px;
+  box-shadow: 0 20px 56px rgba(22, 53, 70, 0.24);
+}
+
+.data-assistant-header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 15px 13px;
+  background: linear-gradient(135deg, #e9f8f4, #edf5ff);
+  border-bottom: 1px solid #d8e8e7;
+}
+
+.data-assistant-avatar,
+.data-assistant-message-avatar {
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, #127666, #175795);
+  border-radius: 12px;
+}
+
+.data-assistant-avatar {
+  width: 42px;
+  height: 42px;
+}
+
+.data-assistant-avatar svg {
+  width: 23px;
+  height: 23px;
+}
+
+.data-assistant-header div {
+  min-width: 0;
+}
+
+.data-assistant-header small {
+  color: #4d727a;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.data-assistant-header h2 {
+  margin: 1px 0;
+  color: #0a2d43;
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.data-assistant-header p {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  color: #2e756b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.data-assistant-header p svg {
+  width: 13px;
+  height: 13px;
+}
+
+.data-assistant-close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: #456371;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.data-assistant-close:hover {
+  color: #0d4057;
+  background: rgba(18, 110, 98, 0.1);
+}
+
+.data-assistant-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.data-assistant-messages {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 15px;
+  background: #fbfdfd;
+  scrollbar-color: #9dbcb8 transparent;
+}
+
+.data-assistant-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.data-assistant-message.is-user {
+  justify-content: flex-end;
+}
+
+.data-assistant-message-avatar {
+  flex: 0 0 auto;
+  width: 27px;
+  height: 27px;
+  margin-top: 2px;
+  border-radius: 9px;
+}
+
+.data-assistant-message-avatar svg {
+  width: 15px;
+  height: 15px;
+}
+
+.data-assistant-message > div {
+  max-width: calc(100% - 35px);
+  padding: 9px 11px;
+  color: #173e52;
+  background: #f0f6f6;
+  border: 1px solid #d6e6e5;
+  border-radius: 4px 11px 11px;
+}
+
+.data-assistant-message.is-user > div {
+  max-width: 85%;
+  color: #ffffff;
+  background: #176b81;
+  border-color: #176b81;
+  border-radius: 11px 4px 11px 11px;
+}
+
+.data-assistant-message p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.58;
+}
+
+.data-assistant-message small {
+  display: block;
+  margin-top: 7px;
+  color: #67828c;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.data-assistant-message.is-user small {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.data-assistant-examples {
+  padding: 10px 14px 11px;
+  background: #ffffff;
+  border-top: 1px solid #e2eeee;
+}
+
+.data-assistant-examples > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #56737c;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.data-assistant-examples > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.data-assistant-examples button {
+  padding: 5px 7px;
+  color: #17665f;
+  background: #edf8f5;
+  border: 1px solid #cce5df;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.data-assistant-examples button:hover {
+  color: #ffffff;
+  background: #177467;
+  border-color: #177467;
+}
+
+.data-assistant-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 39px;
+  align-items: end;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  background: #ffffff;
+  border-top: 1px solid #dfeceb;
+}
+
+.data-assistant-form label {
+  display: block;
+}
+
+.data-assistant-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 43px;
+  max-height: 70px;
+  resize: vertical;
+  padding: 9px 10px;
+  color: #183f52;
+  background: #f8fbfb;
+  border: 1px solid #cfe0df;
+  border-radius: 9px;
+  outline: 0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.data-assistant-form textarea:focus {
+  border-color: #158274;
+  box-shadow: 0 0 0 3px rgba(21, 130, 116, 0.12);
+}
+
+.data-assistant-form button {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  color: #ffffff;
+  background: #176b81;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.data-assistant-form button:hover {
+  background: #105970;
+}
+
+.data-assistant-form button:disabled,
+.data-assistant-form textarea:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.data-assistant-form button:disabled svg {
+  animation: data-assistant-spin 1s linear infinite;
+}
+
+.data-assistant-form button svg {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes data-assistant-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 760px) {
+  .data-assistant-launcher {
+    right: 16px;
+    bottom: 84px;
+  }
+
+  .data-assistant-toggle {
+    min-height: 49px;
+    padding: 0 15px;
+  }
+
+  .data-assistant-panel {
+    max-height: min(640px, calc(100vh - 112px));
+  }
+}
+
+@media print {
+  .data-assistant-launcher {
     display: none !important;
   }
 }

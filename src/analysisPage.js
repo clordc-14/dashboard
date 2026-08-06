@@ -43,7 +43,7 @@ function renderPage() {
 
       <main class="analysis-main">
         <section class="analysis-title-band">
-          <span class="eyebrow">Brand Analytics</span>
+          <span class="eyebrow">厂牌分析</span>
           <h2>销售数据与建档品种销售表现</h2>
           <p>基于“上市创新药品种池”的厂牌、是否建档及销售金额字段生成。</p>
         </section>

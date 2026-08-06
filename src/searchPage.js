@@ -212,7 +212,7 @@ function createSearchHeading(title, count) {
   const wrap = document.createElement("div");
   const eyebrow = document.createElement("span");
   eyebrow.className = "eyebrow";
-  eyebrow.textContent = "Search";
+  eyebrow.textContent = "检索结果";
   const h2 = document.createElement("h2");
   h2.textContent = title;
   wrap.append(eyebrow, h2);

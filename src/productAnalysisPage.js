@@ -16,14 +16,14 @@ const SCORE_DIMENSIONS = [
   { key: "competitionLifecycleScore", label: "竞品与生命周期", axisLabel: "竞品生命周期" },
   { key: "lifecycleManagementScore", label: "生命周期管理" },
   { key: "policyFitScore", label: "政策导向" },
-  { key: "southwestValueScore", label: "是否与西南核心医院+DTP的优势匹配", axisLabel: "西南匹配" },
+  { key: "southwestValueScore", label: "是否与西南核心医院及院外药房优势匹配", axisLabel: "西南匹配" },
   { key: "companyCapabilityScore", label: "厂牌商业化能力强弱", axisLabel: "厂牌能力" }
 ];
 
 const SERIES_COLORS = ["#0f766e", "#245b89", "#b7791f", "#8b5cf6", "#b42318", "#2f7d32"];
 const RANKING_COLUMNS = [
   { key: "rank", label: "排名" },
-  { key: "displayName", label: "西南名称（CMS品名）" },
+  { key: "displayName", label: "西南名称（内部品名）" },
   { key: "companyName", label: "厂牌" },
   { key: "approvalDate", label: "获批时间" },
   { key: "indication", label: "获批适应症" },
@@ -67,7 +67,7 @@ function renderPage() {
 
       <main class="analysis-main">
         <section class="analysis-title-band product-title-band">
-          <span class="eyebrow">Product Analytics</span>
+          <span class="eyebrow">品种分析</span>
           <h2>销售排名、评分雷达与同类品种对标</h2>
           <p>基于“上市创新药品种池”的销售字段与“新药评分表”的十维评分字段生成。</p>
         </section>
@@ -158,7 +158,7 @@ function renderProductFilter(poolSection, scoreSection) {
   searchWrap.innerHTML = '<i data-lucide="search"></i>';
   const search = document.createElement("input");
   search.type = "search";
-  search.placeholder = "输入通用名、商品名、CMS品名或厂牌检索";
+  search.placeholder = "输入通用名、商品名、内部品名或厂牌检索";
   search.value = productSearch;
   search.addEventListener("compositionstart", () => {
     isProductSearchComposing = true;
@@ -301,7 +301,7 @@ function createSalesTopCard(rows, salesOptions) {
     <div class="analysis-chart-top">
       <div>
         <span class="eyebrow">数据框1</span>
-        <h3>销售TOP5品种</h3>
+        <h3>销售前五品种</h3>
       </div>
       <div class="analysis-card-note">${salesOptions.map((option) => option.displayLabel).join("、")}</div>
     </div>

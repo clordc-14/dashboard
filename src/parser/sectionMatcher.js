@@ -80,6 +80,7 @@ function findPreferredSheet(workbook, sectionConfig) {
 
 function fillDynamicTables(workbook, tableMatches, usedWholeSheets) {
   const candidates = workbook.sheets
+    .filter((sheet) => !isResearchSurveySheet(sheet))
     .filter((sheet) => !usedWholeSheets.has(sheet.name))
     .map((sheet) => ({
       sheet,
@@ -105,6 +106,10 @@ function fillDynamicTables(workbook, tableMatches, usedWholeSheets) {
       matchType: "auto-sheet"
     };
   });
+}
+
+function isResearchSurveySheet(sheet) {
+  return normalizeComparable(sheet.name).replaceAll("—", "") === "网站用表调研表";
 }
 
 function findSectionEnd(rows, startRow, allSections) {
