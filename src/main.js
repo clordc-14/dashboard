@@ -80,7 +80,7 @@ function renderDashboard() {
   const isHivGuide = activeGuide === GUIDE_HIV;
 
   app.innerHTML = `
-    <div class="app-shell">
+    <div class="app-shell${dataAssistantUi.isOpen ? " is-assistant-open" : ""}">
       <header class="topbar">
         <a class="brand" href="/" aria-label="国药西南新药引进网首页">
           <img class="brand-logo" src="${sinopharmLogoUrl}" alt="国药集团" />
