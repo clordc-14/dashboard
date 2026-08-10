@@ -14,7 +14,7 @@ export function createAssistantState() {
     messages: [
       {
         role: "assistant",
-        content: "你好，我是数据助手。我会依据当前网站已存的经营数据回答，并标注数据来源。你可以问销售趋势、销售第一品种、厂牌排名、建档覆盖或未建档品种。",
+        content: "你好，我是国药西南新药引进网的专属智能数据助手。我会查询并解读网站已存的业务数据，先给出结论，再附上可核对的数据依据。你可以问销售趋势、品种与厂牌排名、建档覆盖或未建档清单。",
         sources: ["当前网站经营数据"]
       }
     ]
@@ -25,11 +25,11 @@ export function renderDataAssistant(ui, activeGuide) {
   const examples = getExamples(activeGuide);
   return `
     <div class="data-assistant-launcher${ui.isOpen ? " is-open" : ""}" aria-label="数据助手">
-      <section class="data-assistant-panel" aria-labelledby="dataAssistantTitle"${ui.isOpen ? "" : " hidden"}>
+      <section id="dataAssistantPanel" class="data-assistant-panel" aria-labelledby="dataAssistantTitle"${ui.isOpen ? "" : " hidden"}>
         <header class="data-assistant-header">
           <span class="data-assistant-avatar"><img src="${mascotUrl}" alt="" aria-hidden="true"></span>
-          <div><small>国药西南新药引进网</small><h2 id="dataAssistantTitle">数据助手</h2><p><i data-lucide="shield-check"></i>仅依据已存数据回答</p></div>
-          <button id="dataAssistantClose" class="data-assistant-close" type="button" aria-label="收起数据助手" title="收起数据助手"><span>收起</span><i data-lucide="chevron-down"></i></button>
+          <div><small>国药西南新药引进网</small><h2 id="dataAssistantTitle">智能数据助手</h2><p><i data-lucide="database-zap"></i>基于已核对业务数据回答</p></div>
+          <button id="dataAssistantClose" class="data-assistant-close" type="button" aria-label="返回数据看板" title="返回数据看板"><span>返回看板</span><i data-lucide="panel-right-close"></i></button>
         </header>
         <div id="dataAssistantMessages" class="data-assistant-messages" aria-live="polite">
           ${ui.messages.map(renderAssistantMessage).join("")}
@@ -44,8 +44,8 @@ export function renderDataAssistant(ui, activeGuide) {
         </form>
       </section>
       ${!ui.isOpen && ui.showNudge ? '<button id="dataAssistantNudge" class="data-assistant-nudge" type="button" aria-label="打开数据助手，了解数据问题">有问题找我了解</button>' : ""}
-      <button id="dataAssistantToggle" class="data-assistant-toggle" type="button" aria-expanded="${String(ui.isOpen)}" aria-controls="dataAssistantMessages" title="${ui.isOpen ? "收起数据助手" : "打开数据助手"}">
-        <span class="data-assistant-toggle-mascot"><img src="${mascotUrl}" alt="" aria-hidden="true"></span><span>${ui.isOpen ? "收起助手" : "数据助手"}</span>
+      <button id="dataAssistantToggle" class="data-assistant-toggle" type="button" aria-expanded="${String(ui.isOpen)}" aria-controls="dataAssistantPanel" title="${ui.isOpen ? "收起数据助手" : "打开数据助手"}">
+        <span class="data-assistant-toggle-mascot"><img src="${mascotUrl}" alt="" aria-hidden="true"></span><span>${ui.isOpen ? "收起助手" : "智能数据助手"}</span>
       </button>
     </div>
   `;
@@ -99,7 +99,7 @@ export function answerDataQuestion(question, state, activeGuide) {
     );
   }
 
-  return createAnswer("当前已存数据中没有找到能直接支持这个问题的内容。请换一种问法，或先导入包含该信息的表格/报告。", ["当前网站经营数据"]);
+  return createNotFoundAnswer("当前网站经营数据");
 }
 
 export function appendAssistantMessage(ui, message) {
@@ -238,26 +238,67 @@ function createControlledDomain(dashboard) {
 
 function getInnovationKnowledge(state) {
   const researchRecords = state.researchSurvey?.records || [];
-  const tableRows = state.tableSections?.flatMap((section) => section.rows || []) || [];
+  const tableSections = state.tableSections || [];
+  const tableRows = tableSections.flatMap((section) => section.rows || []);
+  const archiveSummary = getInnovationArchiveSummary(tableSections);
   return createDomain({
     key: "innovation",
     title: "创新药",
-    source: "创新药经营数据",
+    source: archiveSummary?.source || "创新药经营数据",
     years: [],
     trend: [],
     brands: [],
     categories: [],
     products: [...researchRecords, ...tableRows]
       .map((record) => ({
-        name: record.genericName || record.name || record.values?.["通用名"] || record.values?.["品种名称"] || "",
-        brand: record.brand || record.values?.["厂牌"] || "",
-        category: record.indication || record.values?.["适应症"] || "",
+        name: record.genericName || record.name || record.values?.productName || record.values?.["通用名"] || record.values?.["品种名称"] || "",
+        brand: record.brand || record.companyName || record.values?.companyName || record.values?.["厂牌"] || "",
+        category: record.indication || record.values?.indication || record.values?.["适应症"] || "",
         sales: {}
       }))
       .filter((item) => item.name),
-    overview: {},
-    unarchived: []
+    overview: archiveSummary ? { archiveSummary } : {},
+    archiveSummary,
+    unarchived: archiveSummary?.unarchived || []
   });
+}
+
+function getInnovationArchiveSummary(sections) {
+  const innovationPool = sections.find((section) => section.key === "innovativeDrugPool");
+  const section = innovationPool || sections.find((candidate) => (candidate.rows || []).some((row) => getArchiveStatus(row) !== "unknown"));
+  const rows = section?.rows || [];
+  const archived = rows.filter((row) => getArchiveStatus(row) === "archived");
+  const unarchived = rows.filter((row) => getArchiveStatus(row) === "unarchived");
+  const catalogCount = archived.length + unarchived.length;
+
+  if (!catalogCount) return null;
+
+  return {
+    source: section.title || "创新药品种池",
+    catalogCount,
+    archivedCount: archived.length,
+    unarchivedCount: unarchived.length,
+    archiveRate: Math.round((archived.length / catalogCount) * 100),
+    unarchived: unarchived.map((row) => {
+      const values = row.values || row.fields || row;
+      return {
+        name: values.productName || values["通用名"] || values["品种名称"] || row.name || "未标注品种",
+        brand: values.companyName || values["厂牌"] || "未标注厂牌"
+      };
+    })
+  };
+}
+
+function getArchiveStatus(row) {
+  const values = row?.values || row?.fields || row || {};
+  const value = values.southwestArchived ?? values.archived ?? values["是否建档"] ?? values["建档情况"];
+  if (value === true) return "archived";
+  if (value === false) return "unarchived";
+
+  const normalized = String(value || "").trim();
+  if (["是", "已建档", "true", "TRUE", "1"].includes(normalized)) return "archived";
+  if (["否", "未建档", "false", "FALSE", "0"].includes(normalized)) return "unarchived";
+  return "unknown";
 }
 
 function resolveDomain(question, activeGuide, knowledge) {
@@ -276,9 +317,9 @@ function resolveDomain(question, activeGuide, knowledge) {
 }
 
 function answerTrend(domain, years) {
-  if (!domain.trend.length) return createAnswer(`${domain.title}当前没有可用于趋势分析的年度销售数据。`, [domain.source]);
+  if (!domain.trend.length) return createNotFoundAnswer(domain.source);
   const selected = selectTrend(domain.trend, years);
-  if (!selected.length) return createAnswer(`${domain.title}在所问年份没有销售趋势数据。`, [domain.source]);
+  if (!selected.length) return createNotFoundAnswer(domain.source);
   const values = selected.map((item) => `${item.year} 年 ${formatAmount(item.sales)} 万元${item.forecast ? "（预测）" : item.partial ? "（截至当前统计）" : ""}`);
   const rangeSales = selected.reduce((sum, item) => sum + Number(item.sales || 0), 0);
   const title = selected.length === 1 ? `${selected[0].year} 年` : `${selected[0].year}—${selected.at(-1).year} 年`;
@@ -287,13 +328,13 @@ function answerTrend(domain, years) {
 
 function answerRank(domain, key, years, label) {
   const entries = domain[key] || [];
-  if (!entries.length) return createAnswer(`${domain.title}当前没有可用于${label}排名的数据。`, [domain.source]);
+  if (!entries.length) return createNotFoundAnswer(domain.source);
   const selectedYears = resolveYears(domain.years, years);
   const ranking = entries
     .map((item) => ({ ...item, value: sumSales(item.sales, selectedYears) }))
     .filter((item) => item.value > 0)
     .sort((left, right) => right.value - left.value);
-  if (!ranking.length) return createAnswer(`${domain.title}在所问年份没有${label}销售数据。`, [domain.source]);
+  if (!ranking.length) return createNotFoundAnswer(domain.source);
   const top = ranking[0];
   const topThree = ranking.slice(0, 3).map((item, index) => `第${index + 1}：${item.name}（${formatAmount(item.value)}万元）`);
   const period = formatPeriod(selectedYears);
@@ -306,7 +347,8 @@ function answerProduct(domain, product, years) {
   const details = selectedYears
     .filter((year) => Number(product.sales?.[year] || 0) !== 0)
     .map((year) => `${year} 年 ${formatAmount(product.sales[year])} 万元`);
-  return createAnswer(`${product.name}${product.brand ? `（${product.brand}）` : ""}${formatPeriod(selectedYears)}销售 ${formatAmount(value)} 万元。${details.length ? `年度数据：${details.join("；")}。` : "当前数据中未录入该时段销售额。"}`, [domain.source]);
+  if (!details.length) return createNotFoundAnswer(domain.source);
+  return createAnswer(`${product.name}${product.brand ? `（${product.brand}）` : ""}${formatPeriod(selectedYears)}销售 ${formatAmount(value)} 万元。年度数据：${details.join("；")}。`, [domain.source]);
 }
 
 function answerCoverage(domain, knowledge) {
@@ -316,29 +358,46 @@ function answerCoverage(domain, knowledge) {
     return createAnswer(`HIV 指南目录共 ${domain.overview.guidelineCount} 个品种，国药西南已建档 ${domain.overview.archivedCount} 个，覆盖率 ${domain.overview.archiveRate}%。类别覆盖情况：${details}。`, [domain.source, "中国艾滋病诊疗指南（2024版）"]);
   }
   if (domain.key === "rare") {
-    return createAnswer(`罕见病板块当前收录 ${domain.records?.length || domain.products.length} 条品种记录。建档情况以网站已导入的“6年上市罕见病用药”数据为准，可继续询问“未建档品种有哪些”。`, [domain.source]);
+    return createNotFoundAnswer(domain.source);
   }
   if (domain.key === "procurement") {
     return createAnswer(`集采原研源表收录 ${domain.overview.catalogCount} 个有效品种，已建档经营 ${domain.overview.archivedOperatingCount} 个，经营建档率 ${domain.overview.archiveRate}%。`, [domain.source]);
   }
-  return createAnswer(`${domain.title}当前没有可直接汇总的建档覆盖字段。`, [domain.source]);
+  if (domain.key === "innovation" && domain.archiveSummary) {
+    const summary = domain.archiveSummary;
+    return createAnswer(`结论：${summary.source}共收录 ${summary.catalogCount} 个品种，已建档 ${summary.archivedCount} 个，未建档 ${summary.unarchivedCount} 个，建档率 ${summary.archiveRate}%。如需继续跟进，我可以按厂牌归集未建档清单。`, [summary.source]);
+  }
+  return createNotFoundAnswer(domain.source);
 }
 
 function answerUnarchived(domain, knowledge) {
   if (domain.key === "hiv") {
     const items = domain.unarchived || [];
+    if (!items.length) return createNotFoundAnswer(domain.source);
     return createAnswer(`HIV 指南目录未建档品种为：${items.map((item) => `${item.name}（${item.note}）`).join("；")}。文稿判断这两项主要由免费治疗或基层集采供应覆盖，对商业竞争力影响有限。`, [domain.source, "HIV药品经营分析报告"]);
   }
   if (domain.key === "rare") {
     const items = domain.unarchived || [];
+    if (!items.length) return createNotFoundAnswer(domain.source);
     const preview = items.slice(0, 8).map((item) => `${item.name}（${item.note}）`).join("；");
     return createAnswer(`罕见病当前数据中未建档品种共 ${items.length} 个。优先示例：${preview}${items.length > 8 ? "等" : ""}。`, [domain.source]);
   }
   if (domain.key === "controlled") {
     const items = domain.unarchived || [];
+    if (!items.length) return createNotFoundAnswer(domain.source);
     return createAnswer(`麻精板块当前记录的未建档品种包括：${items.slice(0, 8).map((item) => item.name).join("、")}${items.length > 8 ? "等" : ""}。`, [domain.source]);
   }
-  return createAnswer(`${domain.title}当前未纳入未建档品种清单数据。`, [domain.source]);
+  if (domain.key === "innovation" && domain.archiveSummary) {
+    const items = domain.unarchived || [];
+    if (!items.length) return createNotFoundAnswer(domain.source);
+    const brands = [...items.reduce((groups, item) => groups.set(item.brand, Number(groups.get(item.brand) || 0) + 1), new Map()).entries()]
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 6)
+      .map(([brand, count]) => `${brand} ${count} 个`);
+    const examples = items.slice(0, 8).map((item) => `${item.name}（${item.brand}）`);
+    return createAnswer(`${domain.archiveSummary.source}当前未建档 ${items.length} 个品种。按厂牌归集（前 6）：${brands.join("；")}。品种示例：${examples.join("、")}${items.length > examples.length ? "等" : ""}。`, [domain.archiveSummary.source]);
+  }
+  return createNotFoundAnswer(domain.source);
 }
 
 function retrieveEvidence(question, knowledge) {
@@ -380,6 +439,7 @@ function createKnowledgeChunks(domain) {
 function formatOverview(domain) {
   if (domain.key === "hiv") return `指南目录${domain.overview.guidelineCount}个，已建档${domain.overview.archivedCount}个，覆盖率${domain.overview.archiveRate}%，累计销售${formatAmount(domain.overview.cumulativeSales)}万元。`;
   if (domain.key === "procurement") return `有效品种${domain.overview.catalogCount}个，已建档经营${domain.overview.archivedOperatingCount}个，涉及${domain.overview.manufacturerCount}家原研厂家。`;
+  if (domain.key === "innovation" && domain.archiveSummary) return `${domain.archiveSummary.source}收录${domain.archiveSummary.catalogCount}个品种，已建档${domain.archiveSummary.archivedCount}个，未建档${domain.archiveSummary.unarchivedCount}个，建档率${domain.archiveSummary.archiveRate}%。`;
   return "当前网站已存经营数据。";
 }
 
@@ -460,6 +520,10 @@ function renderAssistantMessage(message) {
 
 function createAnswer(content, sources) {
   return { role: "assistant", content, sources };
+}
+
+function createNotFoundAnswer(source) {
+  return createAnswer("数据库中暂未查到相关信息，建议确认数据是否已录入或联系数据管理员。若有需要，我可为您进行网页检索。", [source]);
 }
 
 function formatAmount(value) {
