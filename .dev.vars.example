@@ -1,2 +1,11 @@
-# Copy this file to .dev.vars and supply a development-only API key.
+# The committed Wrangler configuration is intentionally production-oriented.
+# For local Pages development, use `npm run pages:dev`; it explicitly enables
+# the local development identity path and never requires a Cloudflare Access JWT.
+#
+# Copy this file to .dev.vars only when you also need local-only overrides.
+# Do not put real Access credentials or production secrets in this file.
+ENVIRONMENT="development"
+DEV_USER_EMAIL=""
+DEV_USER_NAME=""
+DEV_USER_ROLE="admin"
 DEEPSEEK_API_KEY=""

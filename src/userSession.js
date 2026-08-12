@@ -19,18 +19,27 @@ export function isAdministrator(user) {
 }
 
 export function formatRole(user) {
-  return isAdministrator(user) ? "管理员" : "用户";
+  return {
+    admin: "管理员",
+    editor: "编辑者",
+    viewer: "查看者"
+  }[user?.role] || "查看者";
 }
 
 function createLocalFallbackUser() {
   const isLocal = LOCAL_DEVELOPMENT_HOSTS.has(window.location.hostname);
   return {
     id: "local-browser-user",
-    email: isLocal ? "dev@example.com" : "",
+    email: isLocal ? createLocalDevelopmentEmail() : "",
     name: isLocal ? "本地测试管理员" : "当前用户",
     role: isLocal ? "admin" : "viewer",
     source: "fallback"
   };
+}
+
+function createLocalDevelopmentEmail() {
+  const host = window.location.hostname.toLowerCase().replace(/[^a-z0-9]/g, "-");
+  return `local-developer-${host || "pages"}@local.invalid`;
 }
 
 function normalizeUser(user, source) {
@@ -38,7 +47,7 @@ function normalizeUser(user, source) {
     id: String(user.id || ""),
     email: String(user.email || "").trim().toLowerCase(),
     name: String(user.name || user.email || "当前用户").trim(),
-    role: user.role === "admin" ? "admin" : "viewer",
+    role: ["admin", "editor", "viewer"].includes(user.role) ? user.role : "viewer",
     source
   };
 }

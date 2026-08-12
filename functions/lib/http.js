@@ -49,3 +49,11 @@ export function methodNotAllowed(allowedMethods) {
     }
   );
 }
+
+export async function readJson(request) {
+  try {
+    return await request.json();
+  } catch {
+    throw new HttpError(400, "Request body must be valid JSON");
+  }
+}
