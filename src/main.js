@@ -101,6 +101,8 @@ function renderDashboard() {
           </form>
           <div class="topbar-actions">
             <span class="last-update"><i data-lucide="clock-3"></i><span>${formatDateTime(meta.updatedAt)}</span></span>
+            <a class="button button-ghost" href="/files.html"><i data-lucide="folder-open"></i><span>资料库</span></a>
+            ${isAdministrator(currentUser) ? '<a class="button button-ghost" href="/users.html"><i data-lucide="users-round"></i><span>用户管理</span></a>' : ""}
             <a class="user-greeting" href="/welcome.html" aria-label="打开欢迎页"><i data-lucide="circle-user-round"></i><span>欢迎，${escapeHtml(currentUser.name)}</span><small>${formatRole(currentUser)}</small></a>
           <button class="button button-ghost" id="pdfExportButton" type="button"><i data-lucide="file-down"></i><span>导出文档</span></button>
             ${

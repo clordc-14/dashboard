@@ -12,7 +12,9 @@ export default {
         search: resolve(rootDir, "search.html"),
         analysis: resolve(rootDir, "analysis.html"),
         productAnalysis: resolve(rootDir, "product-analysis.html"),
-        targetAnalysis: resolve(rootDir, "target-analysis.html")
+        targetAnalysis: resolve(rootDir, "target-analysis.html"),
+        files: resolve(rootDir, "files.html"),
+        users: resolve(rootDir, "users.html")
       }
     }
   }

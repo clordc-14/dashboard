@@ -3,7 +3,6 @@ import { HttpError } from "./http.js";
 
 const ACCESS_JWT_HEADER = "cf-access-jwt-assertion";
 const ACCESS_JWT_COOKIE = "CF_Authorization";
-const DEFAULT_DEV_EMAIL = "dev@example.com";
 const DEFAULT_DEV_NAME = "Local Developer";
 const DEFAULT_DEV_ROLE = "admin";
 
@@ -15,10 +14,7 @@ export async function authenticateRequest(context) {
       : await getAccessIdentity(context);
 
   if (context.env.DB) {
-    const defaultRole =
-      environment === "development"
-        ? context.env.DEV_USER_ROLE || DEFAULT_DEV_ROLE
-        : "viewer";
+    const defaultRole = getDefaultRole(context.env, identity.email, environment);
 
     return ensureUser(context.env.DB, identity, defaultRole);
   }
@@ -56,9 +52,33 @@ async function getDevelopmentIdentity(context) {
   const headerName = context.request.headers.get("x-dev-user-name");
 
   return {
-    email: headerEmail || context.env.DEV_USER_EMAIL || DEFAULT_DEV_EMAIL,
+    email: headerEmail || context.env.DEV_USER_EMAIL || createLocalDevelopmentEmail(context.request),
     name: headerName || context.env.DEV_USER_NAME || DEFAULT_DEV_NAME
   };
+}
+
+function getDefaultRole(env, email, environment) {
+  if (environment === "development") {
+    return env.DEV_USER_ROLE || DEFAULT_DEV_ROLE;
+  }
+
+  return getInitialAdminEmails(env.INITIAL_ADMIN_EMAILS).has(normalizeEmail(email))
+    ? "admin"
+    : "viewer";
+}
+
+function getInitialAdminEmails(value) {
+  return new Set(
+    String(value || "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function createLocalDevelopmentEmail(request) {
+  const host = new URL(request.url).hostname.toLowerCase().replace(/[^a-z0-9]/g, "-");
+  return `local-developer-${host || "pages"}@local.invalid`;
 }
 
 async function getAccessIdentity(context) {
