@@ -2423,15 +2423,57 @@ a.focus-news-title:hover {
 
 .leader-metric.metric-detail-link::after,
 .intro-record-metric.metric-detail-link::after,
-.pool-metric.metric-detail-link::after {
+.pool-metric.metric-detail-link::after,
+.controlled-stat.metric-detail-link::after,
+.rare-kpi-card.metric-detail-link::after,
+.specialty-kpi.metric-detail-link::after {
   position: absolute;
-  right: 16px;
-  bottom: 12px;
   display: block;
   color: #728197;
   content: "查看明细 ↗";
   font-size: 12px;
   font-weight: 800;
+}
+
+.leader-metric.metric-detail-link::after,
+.intro-record-metric.metric-detail-link::after,
+.pool-metric.metric-detail-link::after,
+.rare-kpi-card.metric-detail-link::after {
+  right: 16px;
+  bottom: 12px;
+}
+
+.controlled-stat.metric-detail-link,
+.rare-kpi-card.metric-detail-link,
+.specialty-kpi.metric-detail-link {
+  position: relative;
+}
+
+.controlled-stat.metric-detail-link::after {
+  top: 10px;
+  right: 10px;
+  font-size: 10px;
+}
+
+.specialty-kpi.metric-detail-link {
+  min-height: 128px;
+  padding-bottom: 32px;
+}
+
+.specialty-kpi.metric-detail-link::after {
+  right: 18px;
+  bottom: 12px;
+}
+
+.dashboard-detail-focus {
+  scroll-margin-top: 20px;
+  animation: dashboard-detail-pulse 1.3s ease-out;
+}
+
+@keyframes dashboard-detail-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(98, 182, 235, 0.46); }
+  65% { box-shadow: 0 0 0 9px rgba(98, 182, 235, 0); }
+  100% { box-shadow: none; }
 }
 
 .leader-metric-landed {
@@ -3453,7 +3495,21 @@ a.search-result-title:hover {
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 50%;
   box-shadow: 0 16px 34px rgba(15, 104, 88, 0.32);
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
+}
+
+.analysis-launcher.is-dragging {
+  user-select: none;
+}
+
+.analysis-launcher.is-dragging .analysis-orb {
+  cursor: grabbing;
+}
+
+.analysis-orb:focus-visible {
+  outline: 3px solid rgba(83, 176, 231, 0.5);
+  outline-offset: 3px;
 }
 
 .analysis-orb .lucide {
@@ -5618,7 +5674,7 @@ a.search-result-title:hover {
 }
 
 @media screen {
-  body.is-printing-pdf .topbar-tools,
+body.is-printing-pdf .topbar-tools,
   body.is-printing-pdf .guide-nav,
   body.is-printing-pdf .analysis-launcher,
   body.is-printing-pdf #noticeHost {
