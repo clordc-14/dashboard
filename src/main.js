@@ -28,6 +28,8 @@ const GUIDE_CONTROLLED_DRUGS = "麻精";
 const GUIDE_RARE_DISEASES = "罕见病";
 const GUIDE_PROCUREMENT_ORIGINATOR = "集采原研";
 const GUIDE_HIV = "HIV药品";
+const ANALYSIS_LAUNCHER_POSITION_KEY = "sinopharm-analysis-launcher-position";
+const ANALYSIS_LAUNCHER_EDGE_GAP = 12;
 let dashboardState = demoDashboardData;
 let notice = null;
 let activeGuide = getActiveGuideFromHash();
@@ -59,6 +61,7 @@ let dataAssistantUi = createAssistantState();
 let dataAssistantNudgeTimer;
 let dataAssistantNudgeHideTimer;
 let dataAssistantNudgeHasBeenShown = false;
+let analysisLauncherResizeBound = false;
 
 initializeDashboard();
 window.addEventListener("beforeprint", () => document.body.classList.add("is-printing-pdf"));
@@ -131,7 +134,7 @@ function renderDashboard() {
       }
 
       <div class="analysis-launcher" aria-label="数据分析功能">
-        <button class="analysis-orb" type="button" aria-expanded="false" aria-controls="analysisMenu" title="数据分析">
+        <button class="analysis-orb" type="button" aria-expanded="false" aria-controls="analysisMenu" title="数据分析（可拖动）" aria-label="数据分析，可拖动调整位置">
           <i data-lucide="sparkles"></i>
         </button>
         <div class="analysis-menu" id="analysisMenu">
@@ -152,6 +155,7 @@ function renderDashboard() {
   bindInnovationDashboard();
   bindRareDiseaseDashboard();
   bindSpecialtyDashboards();
+  bindDashboardDetailLinks();
   bindDataAssistant();
   renderNotice();
   const newsContainer = document.querySelector("#newsSections");
@@ -308,7 +312,7 @@ function renderControlledDrugDashboard() {
 
         <div id="noticeHost"></div>
 
-        <section class="controlled-category-stack" aria-label="麻精药品分类展示">
+        <section id="controlledCategoryDetails" class="controlled-category-stack" aria-label="麻精药品分类展示">
           ${categories.map(renderControlledCategory).join("")}
         </section>
       </main>
@@ -383,10 +387,10 @@ function renderRareDiseaseDashboard() {
             </div>
           </div>
           <div class="rare-kpi-grid">
-            ${renderRareKpi("国家药监局批准品种", overviewRange.approvedCount, "个", "stamp")}
-            ${renderRareKpi("国药西南建档", overviewRange.archivedCount, "个", "folder-check")}
-            ${renderRareKpi("整体引进率", overviewRange.archiveRate, "%", "chart-no-axes-combined")}
-            ${renderRareKpi("区间销售", formatTopSalesAmount(overviewRange.salesTotal), "万元", "badge-dollar-sign")}
+            ${renderRareKpi("国家药监局批准品种", overviewRange.approvedCount, "个", "stamp", "rareRecords")}
+            ${renderRareKpi("国药西南建档", overviewRange.archivedCount, "个", "folder-check", "rareRecords")}
+            ${renderRareKpi("整体引进率", overviewRange.archiveRate, "%", "chart-no-axes-combined", "rareRecords")}
+            ${renderRareKpi("区间销售", formatTopSalesAmount(overviewRange.salesTotal), "万元", "badge-dollar-sign", "rareRecords")}
           </div>
 
           <section class="rare-hero-trend" aria-label="年度罕见病药品与销售趋势">
@@ -464,7 +468,7 @@ function renderRareDiseaseDashboard() {
 
         ${renderRareUnarchivedAnalysis(unarchivedAnalysis, availableYears)}
 
-        <section class="rare-panel rare-records-panel" aria-label="罕见病药品明细">
+        <section id="rareRecords" class="rare-panel rare-records-panel" aria-label="罕见病药品明细">
           <div class="rare-section-heading">
             <div><span class="eyebrow">药品目录</span><h2>罕见病药品明细</h2></div>
             <form id="rareRecordSearchForm" class="rare-record-search">
@@ -478,12 +482,12 @@ function renderRareDiseaseDashboard() {
   `;
 }
 
-function renderRareKpi(label, value, unit, icon) {
+function renderRareKpi(label, value, unit, icon, detailTarget) {
   return `
-    <article class="rare-kpi-card">
+    <a class="rare-kpi-card metric-detail-link" href="#${detailTarget}" data-dashboard-detail-target="${detailTarget}" title="查看${label}明细">
       <span><i data-lucide="${icon}"></i>${label}</span>
       <strong>${value}<em>${unit}</em></strong>
-    </article>
+    </a>
   `;
 }
 
@@ -1057,6 +1061,7 @@ function renderControlledSalesPanel(periods, categories) {
 }
 
 function renderControlledCategory(category) {
+  const detailTargetId = `controlled-${category.key}-details`;
   return `
     <article class="controlled-category" style="--category-color: ${category.color}">
       <div class="controlled-category-title">
@@ -1066,11 +1071,11 @@ function renderControlledCategory(category) {
       <div class="controlled-category-grid">
         <div class="controlled-category-left">
           <div class="controlled-stat-row">
-            ${renderControlledStat("目录品种", category.catalogCount)}
-            ${renderControlledStat("国内上市", category.domesticCount)}
-            ${renderControlledStat("西南建档", category.archivedCount)}
+            ${renderControlledStat("目录品种", category.catalogCount, detailTargetId)}
+            ${renderControlledStat("国内上市", category.domesticCount, detailTargetId)}
+            ${renderControlledStat("西南建档", category.archivedCount, detailTargetId)}
           </div>
-          <section class="controlled-detail-panel">
+          <section id="${detailTargetId}" class="controlled-detail-panel">
             <div class="controlled-detail-heading">
               <h3>未建档品种</h3>
               <span>${Math.max(category.domesticCount - category.archivedCount, 0)} 个</span>
@@ -1097,12 +1102,12 @@ function renderControlledCategory(category) {
   `;
 }
 
-function renderControlledStat(label, value) {
+function renderControlledStat(label, value, detailTarget) {
   return `
-    <div class="controlled-stat">
+    <a class="controlled-stat metric-detail-link" href="#${detailTarget}" data-dashboard-detail-target="${detailTarget}" title="查看${label}明细">
       <strong>${value}</strong>
       <span>${label}</span>
-    </div>
+    </a>
   `;
 }
 
@@ -1527,6 +1532,23 @@ function scrollToRareRecords() {
   });
 }
 
+function bindDashboardDetailLinks() {
+  document.querySelectorAll("[data-dashboard-detail-target]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const target = document.getElementById(link.dataset.dashboardDetailTarget || "");
+      if (!target) return;
+
+      event.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+      target.classList.remove("dashboard-detail-focus");
+      requestAnimationFrame(() => target.classList.add("dashboard-detail-focus"));
+      window.setTimeout(() => target.classList.remove("dashboard-detail-focus"), 1300);
+    });
+  });
+}
+
 function bindSpecialtyDashboards() {
   bindSpecialtyRangeFilter("procurement", procurementOriginatorUi);
   bindSpecialtyRangeFilter("hiv", hivUi);
@@ -1630,7 +1652,75 @@ function bindAnalysisLauncher() {
   const orb = launcher?.querySelector(".analysis-orb");
   if (!launcher || !orb) return;
 
-  orb.addEventListener("click", () => {
+  restoreAnalysisLauncherPosition(launcher);
+  bindAnalysisLauncherViewportClamp();
+
+  let dragState = null;
+  let suppressClick = false;
+
+  function onPointerMove(event) {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+    const deltaX = event.clientX - dragState.startX;
+    const deltaY = event.clientY - dragState.startY;
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      dragState.wasDragged = true;
+      launcher.classList.add("is-dragging");
+    }
+    if (!dragState.wasDragged) return;
+
+    positionAnalysisLauncher(launcher, dragState.left + deltaX, dragState.top + deltaY);
+  }
+
+  function endDrag(event) {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+    const { pointerId, wasDragged } = dragState;
+    dragState = null;
+    launcher.classList.remove("is-dragging");
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", endDrag);
+    window.removeEventListener("pointercancel", endDrag);
+    try {
+      orb.releasePointerCapture?.(pointerId);
+    } catch {
+      // The pointer can already have been released by the browser.
+    }
+
+    if (wasDragged) {
+      saveAnalysisLauncherPosition(launcher);
+      suppressClick = event.type === "pointerup";
+    }
+  }
+
+  orb.addEventListener("pointerdown", (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+
+    const rect = launcher.getBoundingClientRect();
+    dragState = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      left: rect.left,
+      top: rect.top,
+      wasDragged: false
+    };
+    try {
+      orb.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Pointer capture is not available in every embedded browser context.
+    }
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", endDrag);
+    window.addEventListener("pointercancel", endDrag);
+  });
+
+  orb.addEventListener("click", (event) => {
+    if (suppressClick) {
+      suppressClick = false;
+      event.preventDefault();
+      return;
+    }
     const isOpen = launcher.classList.toggle("is-open");
     orb.setAttribute("aria-expanded", String(isOpen));
   });
@@ -1645,6 +1735,59 @@ function bindAnalysisLauncher() {
       document.querySelector("#noticeHost")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
+}
+
+function bindAnalysisLauncherViewportClamp() {
+  if (analysisLauncherResizeBound) return;
+  analysisLauncherResizeBound = true;
+  window.addEventListener("resize", () => {
+    const launcher = document.querySelector(".analysis-launcher");
+    if (launcher?.style.left || launcher?.style.top) clampAnalysisLauncherPosition(launcher);
+  });
+}
+
+function restoreAnalysisLauncherPosition(launcher) {
+  let position;
+  try {
+    position = JSON.parse(window.localStorage.getItem(ANALYSIS_LAUNCHER_POSITION_KEY) || "null");
+  } catch {
+    return;
+  }
+  if (!Number.isFinite(position?.left) || !Number.isFinite(position?.top)) return;
+
+  requestAnimationFrame(() => positionAnalysisLauncher(launcher, position.left, position.top));
+}
+
+function saveAnalysisLauncherPosition(launcher) {
+  const rect = launcher.getBoundingClientRect();
+  try {
+    window.localStorage.setItem(
+      ANALYSIS_LAUNCHER_POSITION_KEY,
+      JSON.stringify({ left: Math.round(rect.left), top: Math.round(rect.top) })
+    );
+  } catch {
+    // Position persistence is optional when browser storage is unavailable.
+  }
+}
+
+function clampAnalysisLauncherPosition(launcher) {
+  const left = Number.parseFloat(launcher.style.left);
+  const top = Number.parseFloat(launcher.style.top);
+  if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+  positionAnalysisLauncher(launcher, left, top);
+}
+
+function positionAnalysisLauncher(launcher, left, top) {
+  const rect = launcher.getBoundingClientRect();
+  const maxLeft = Math.max(ANALYSIS_LAUNCHER_EDGE_GAP, window.innerWidth - rect.width - ANALYSIS_LAUNCHER_EDGE_GAP);
+  const maxTop = Math.max(ANALYSIS_LAUNCHER_EDGE_GAP, window.innerHeight - rect.height - ANALYSIS_LAUNCHER_EDGE_GAP);
+  const nextLeft = Math.round(Math.min(maxLeft, Math.max(ANALYSIS_LAUNCHER_EDGE_GAP, left)));
+  const nextTop = Math.round(Math.min(maxTop, Math.max(ANALYSIS_LAUNCHER_EDGE_GAP, top)));
+
+  launcher.style.left = `${nextLeft}px`;
+  launcher.style.top = `${nextTop}px`;
+  launcher.style.right = "auto";
+  launcher.style.bottom = "auto";
 }
 
 function bindDataAssistant() {

@@ -19,10 +19,10 @@ export function renderProcurementOriginatorDashboard(dashboard, ui) {
           </div>
         </div>
         <div class="specialty-kpi-grid">
-          ${renderKpi("有效品种", dashboard.overview.catalogCount, "个", "package-check")}
-          ${renderKpi("已建档经营", dashboard.overview.archivedOperatingCount, "个", "folder-check")}
-          ${renderKpi("经营建档率", dashboard.overview.archiveRate, "%", "chart-no-axes-combined")}
-          ${renderKpi(`${analysis.periodLabel}销售`, formatAmount(analysis.totalSales), "万元", "badge-dollar-sign")}
+          ${renderKpi("有效品种", dashboard.overview.catalogCount, "个", "package-check", "procurementRecords")}
+          ${renderKpi("已建档经营", dashboard.overview.archivedOperatingCount, "个", "folder-check", "procurementRecords")}
+          ${renderKpi("经营建档率", dashboard.overview.archiveRate, "%", "chart-no-axes-combined", "procurementRecords")}
+          ${renderKpi(`${analysis.periodLabel}销售`, formatAmount(analysis.totalSales), "万元", "badge-dollar-sign", "procurementRecords")}
         </div>
         <section class="specialty-trend-section" aria-label="集采原研销售趋势">
           <div class="specialty-panel-heading">
@@ -78,7 +78,7 @@ export function renderProcurementOriginatorDashboard(dashboard, ui) {
         </article>
       </section>
 
-      <section class="specialty-record-section specialty-panel" aria-label="集采原研药品明细">
+      <section id="procurementRecords" class="specialty-record-section specialty-panel" aria-label="集采原研药品明细">
         <div class="specialty-panel-heading"><div><span class="eyebrow">药品明细</span><h2>重点品种明细</h2></div><p>展示所选时段销售靠前的 ${analysis.products.length} 个品种</p></div>
         ${renderRecordsTable(analysis.products, analysis.periodLabel, ui, "procurement")}
       </section>
@@ -108,10 +108,10 @@ export function renderHivDashboard(dashboard, ui) {
           </div>
         </div>
         <div class="specialty-kpi-grid">
-          ${renderKpi("指南目录品种", dashboard.overview.guidelineCount, "个", "book-open-check")}
-          ${renderKpi("西南建档品种", dashboard.overview.archivedCount, "个", "folder-check")}
-          ${renderKpi("建档覆盖率", dashboard.overview.archiveRate, "%", "chart-no-axes-combined")}
-          ${renderKpi(`${analysis.periodLabel}销售`, formatAmount(analysis.totalSales), "万元", "badge-dollar-sign")}
+          ${renderKpi("指南目录品种", dashboard.overview.guidelineCount, "个", "book-open-check", "hivCoverage")}
+          ${renderKpi("西南建档品种", dashboard.overview.archivedCount, "个", "folder-check", "hivCoverage")}
+          ${renderKpi("建档覆盖率", dashboard.overview.archiveRate, "%", "chart-no-axes-combined", "hivCoverage")}
+          ${renderKpi(`${analysis.periodLabel}销售`, formatAmount(analysis.totalSales), "万元", "badge-dollar-sign", "hivRecords")}
         </div>
         <section class="specialty-trend-section" aria-label="HIV药品销售趋势">
           <div class="specialty-panel-heading"><div><span class="eyebrow">销售趋势</span><h2>年度销售金额趋势</h2></div><p>单位：万元${analysis.endYear === 2025 ? "；2025 年为截至当前统计数据" : ""}</p></div>
@@ -139,7 +139,7 @@ export function renderHivDashboard(dashboard, ui) {
       </section>
 
       <section class="specialty-bottom-grid hiv-bottom-grid" aria-label="HIV建档覆盖与重点关注">
-        <article class="specialty-panel specialty-coverage-panel">
+        <article id="hivCoverage" class="specialty-panel specialty-coverage-panel">
           <div class="specialty-panel-heading"><div><span class="eyebrow">指南覆盖</span><h2>药物类别建档情况</h2></div><p>按指南品种计</p></div>
           <div class="specialty-coverage-table"><table><thead><tr><th>类别</th><th>指南品种</th><th>已建档</th><th>覆盖状态</th></tr></thead><tbody>${dashboard.coverage
             .map(
@@ -157,7 +157,7 @@ export function renderHivDashboard(dashboard, ui) {
         </article>
       </section>
 
-      <section class="specialty-record-section specialty-panel" aria-label="HIV重点药品明细">
+      <section id="hivRecords" class="specialty-record-section specialty-panel" aria-label="HIV重点药品明细">
         <div class="specialty-panel-heading"><div><span class="eyebrow">品种贡献</span><h2>重点药品销售明细</h2></div><p>${analysis.periodLabel}销售贡献前 ${analysis.products.length} 个品种</p></div>
         ${renderRecordsTable(analysis.products, analysis.periodLabel, ui, "hiv")}
       </section>
@@ -202,8 +202,8 @@ function renderYearRangeFilter(prefix, years, analysis, label) {
     .join("")}</select></label>`;
 }
 
-function renderKpi(label, value, unit, icon) {
-  return `<article class="specialty-kpi"><span><i data-lucide="${icon}"></i>${escapeHtml(label)}</span><strong>${value}<em>${unit}</em></strong></article>`;
+function renderKpi(label, value, unit, icon, detailTarget) {
+  return `<a class="specialty-kpi metric-detail-link" href="#${detailTarget}" data-dashboard-detail-target="${detailTarget}" title="查看${escapeHtml(label)}明细"><span><i data-lucide="${icon}"></i>${escapeHtml(label)}</span><strong>${value}<em>${unit}</em></strong></a>`;
 }
 
 function renderTrendChart(trend, axisTitle) {
