@@ -36,6 +36,20 @@ export function requireJsonSameOriginRequest(request) {
     throw new HttpError(400, "Content-Type must be application/json");
   }
 
+  requireSameOriginRequest(request);
+}
+
+export function requireMultipartSameOriginRequest(request) {
+  const contentType = request.headers.get("content-type") || "";
+
+  if (!contentType.toLowerCase().includes("multipart/form-data")) {
+    throw new HttpError(400, "Content-Type must be multipart/form-data");
+  }
+
+  requireSameOriginRequest(request);
+}
+
+export function requireSameOriginRequest(request) {
   const origin = request.headers.get("origin");
   if (origin && origin !== new URL(request.url).origin) {
     throw new HttpError(403, "Cross-origin requests are not allowed");

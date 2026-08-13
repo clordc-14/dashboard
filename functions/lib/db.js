@@ -4,7 +4,7 @@ export const VALID_ROLES = new Set(["admin", "editor", "viewer"]);
 
 export function requireDb(env) {
   if (!env.DB) {
-    throw new HttpError(500, "Missing required D1 binding: DB");
+    throw new HttpError(500, "DB binding is missing", undefined, true);
   }
 
   return env.DB;

@@ -1,9 +1,10 @@
 export class HttpError extends Error {
-  constructor(status, message, details) {
+  constructor(status, message, details, expose = false) {
     super(message);
     this.name = "HttpError";
     this.status = status;
     this.details = details;
+    this.expose = expose;
   }
 }
 
@@ -21,7 +22,7 @@ export function jsonError(error) {
   const status = Number.isInteger(error?.status) ? error.status : 500;
   const body = {
     error: {
-      message: status === 500 ? "Internal server error" : error.message,
+      message: status === 500 && !error?.expose ? "Internal server error" : error.message,
       status
     }
   };

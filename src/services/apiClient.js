@@ -53,6 +53,35 @@ export function deleteFolder(id) {
   });
 }
 
+export function listFiles(folderId) {
+  const normalizedFolderId = String(folderId || "").trim();
+
+  if (!normalizedFolderId) {
+    return Promise.reject(new ApiError(400, "请选择有效的文件夹。"));
+  }
+
+  return requestJson(`/api/files?${new URLSearchParams({ folderId: normalizedFolderId }).toString()}`);
+}
+
+export function uploadFile(folderId, file) {
+  return requestFormData("/api/files/upload", { folderId, file });
+}
+
+export function getFile(id) {
+  return requestJson(`/api/files/${encodeURIComponent(id)}`);
+}
+
+export function uploadFileVersion(id, file) {
+  return requestFormData(`/api/files/${encodeURIComponent(id)}/version`, { file });
+}
+
+export function archiveFile(id) {
+  return requestJson(`/api/files/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    body: {}
+  });
+}
+
 async function requestJson(url, options = {}) {
   const hasBody = options.body !== undefined;
   const response = await fetch(url, {
@@ -64,6 +93,26 @@ async function requestJson(url, options = {}) {
     body: hasBody ? JSON.stringify(options.body) : undefined
   });
 
+  return readResponse(response);
+}
+
+async function requestFormData(url, fields) {
+  const formData = new FormData();
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) formData.append(key, value);
+  });
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    body: formData
+  });
+
+  return readResponse(response);
+}
+
+async function readResponse(response) {
   if (response.status === 204) return null;
 
   let payload;
