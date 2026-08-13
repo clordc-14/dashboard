@@ -5863,6 +5863,37 @@ a.search-result-title:hover {
   margin-top: 24px;
 }
 
+.root-upload-guidance {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: #f7fbfd;
+}
+
+.root-upload-guidance > .lucide {
+  width: 26px;
+  height: 26px;
+  color: var(--blue);
+}
+
+.root-upload-guidance h4 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.root-upload-guidance p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .library-content-heading {
   display: flex;
   align-items: center;
@@ -6133,6 +6164,15 @@ a.search-result-title:hover {
 
   .library-heading-actions {
     justify-content: flex-start;
+  }
+
+  .root-upload-guidance {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .root-upload-guidance .button {
+    grid-column: 2;
+    justify-self: start;
   }
 
   .library-panel,

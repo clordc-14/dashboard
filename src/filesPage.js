@@ -90,6 +90,7 @@ function renderPage() {
 }
 
 function renderLibraryContents(canManage, canDelete) {
+  const isRootFolder = !library.currentFolder?.id;
   const empty = !library.folders.length && !library.files.length;
 
   return `
@@ -98,9 +99,19 @@ function renderLibraryContents(canManage, canDelete) {
       <div class="library-content-heading"><h4><i data-lucide="folder"></i>文件夹</h4><span>${library.folders.length} 个</span></div>
       ${renderFolders(canManage, canDelete)}
     </section>
-    <section class="library-content-section">
+    ${isRootFolder ? renderRootUploadGuidance(canManage) : `<section class="library-content-section">
       <div class="library-content-heading"><h4><i data-lucide="file-text"></i>文件</h4><span>${library.files.length} 个</span></div>
       ${renderFiles(canManage, canDelete)}
+    </section>`}
+  `;
+}
+
+function renderRootUploadGuidance(canManage) {
+  return `
+    <section class="root-upload-guidance">
+      <i data-lucide="folder-tree"></i>
+      <div><h4>文件需要存放在文件夹中</h4><p>${canManage ? "请新建或进入一个文件夹后上传 Office 文件。这样每份资料都能保持清晰的归属、版本记录与权限审计。" : "管理员或编辑者会在文件夹内上传和管理资料；请选择一个文件夹查看文件内容。"}</p></div>
+      ${canManage ? '<button class="button button-primary" type="button" data-create-root-folder><i data-lucide="folder-plus"></i><span>新建文件夹</span></button>' : ""}
     </section>
   `;
 }
@@ -203,6 +214,7 @@ function bindPageActions() {
     button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`)?.close());
   });
   document.querySelector("#createFolderButton")?.addEventListener("click", () => openFolderDialog("create"));
+  document.querySelector("[data-create-root-folder]")?.addEventListener("click", () => openFolderDialog("create"));
   document.querySelector("#uploadFileButton")?.addEventListener("click", () => openFileDialog("upload"));
   document.querySelectorAll("[data-rename-folder]").forEach((button) => {
     button.addEventListener("click", () => openFolderDialog("rename", button.dataset.renameFolder));
