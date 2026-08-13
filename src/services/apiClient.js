@@ -53,14 +53,16 @@ export function deleteFolder(id) {
   });
 }
 
-export function listFiles(folderId) {
+export function listFiles(folderId, { status = "" } = {}) {
   const normalizedFolderId = String(folderId || "").trim();
 
   if (!normalizedFolderId) {
     return Promise.reject(new ApiError(400, "请选择有效的文件夹。"));
   }
 
-  return requestJson(`/api/files?${new URLSearchParams({ folderId: normalizedFolderId }).toString()}`);
+  const params = new URLSearchParams({ folderId: normalizedFolderId });
+  if (status) params.set("status", status);
+  return requestJson(`/api/files?${params.toString()}`);
 }
 
 export function uploadFile(folderId, file) {
@@ -79,6 +81,13 @@ export function archiveFile(id) {
   return requestJson(`/api/files/${encodeURIComponent(id)}`, {
     method: "DELETE",
     body: {}
+  });
+}
+
+export function purgeFile(id, { confirmation, fileName }) {
+  return requestJson(`/api/files/${encodeURIComponent(id)}/purge`, {
+    method: "POST",
+    body: { confirmation, fileName }
   });
 }
 

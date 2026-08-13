@@ -7,9 +7,13 @@ import { HttpError, json, methodNotAllowed } from "../../lib/http.js";
 const NO_STORE_HEADERS = { "cache-control": "no-store" };
 
 export async function onRequestGet(context) {
-  requireAuthenticatedUser(context);
+  const actor = requireAuthenticatedUser(context);
   const db = requireDb(context.env);
   const file = await requireFileById(db, context.params.id);
+
+  if (file.status === "archived" && actor.role !== "admin") {
+    throw new HttpError(404, "File was not found");
+  }
   const versions = await db
     .prepare(
       `SELECT id, version, size, created_by, created_at

@@ -6008,6 +6008,28 @@ a.search-result-title:hover {
   gap: 4px;
 }
 
+.archived-files-section {
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.archived-files-note {
+  max-width: 680px;
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.purge-file-dialog code {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #f1f4f6;
+  color: #8c2f2f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .is-spinning {
   animation: phase-two-spin 1s linear infinite;
 }

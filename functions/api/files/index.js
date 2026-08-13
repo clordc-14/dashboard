@@ -1,4 +1,4 @@
-import { requireAuthenticatedUser } from "../../lib/authorization.js";
+import { requireAdmin, requireAuthenticatedUser } from "../../lib/authorization.js";
 import { requireDb } from "../../lib/db.js";
 import { mapFile } from "../../lib/files.js";
 import { requireFolderById } from "../../lib/folders.js";
@@ -9,10 +9,18 @@ const NO_STORE_HEADERS = { "cache-control": "no-store" };
 export async function onRequestGet(context) {
   requireAuthenticatedUser(context);
   const db = requireDb(context.env);
-  const folderId = new URL(context.request.url).searchParams.get("folderId");
+  const url = new URL(context.request.url);
+  const folderId = url.searchParams.get("folderId");
+  const status = parseStatus(url.searchParams.get("status"));
 
   if (!folderId) {
     throw new HttpError(400, "Folder id is required");
+  }
+
+  const isArchived = status === "archived";
+
+  if (isArchived) {
+    requireAdmin(context);
   }
 
   const folder = await requireFolderById(db, folderId);
@@ -20,7 +28,7 @@ export async function onRequestGet(context) {
     .prepare(
       `SELECT id, folder_id, name, ext, mime_type, size, version, status, created_at, updated_at
        FROM files
-       WHERE folder_id = ? AND status <> 'archived'
+       WHERE folder_id = ? AND ${isArchived ? "status = 'archived'" : "status <> 'archived'"}
        ORDER BY updated_at DESC, id DESC`
     )
     .bind(folder.id)
@@ -31,4 +39,10 @@ export async function onRequestGet(context) {
 
 export function onRequest() {
   return methodNotAllowed(["GET"]);
+}
+
+function parseStatus(value) {
+  if (!value) return null;
+  if (value === "archived") return "archived";
+  throw new HttpError(400, "File status filter is invalid");
 }

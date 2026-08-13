@@ -6,6 +6,7 @@ import {
   deleteFolder,
   listFiles,
   listFolders,
+  purgeFile,
   renameFolder,
   uploadFile,
   uploadFileVersion
@@ -19,6 +20,8 @@ const sinopharmLogoUrl = new URL("./assets/sinopharm-logo.png", import.meta.url)
 let currentUser = { name: "当前用户", role: "viewer" };
 let currentFolderId = getFolderIdFromUrl();
 let library = { currentFolder: null, breadcrumbs: [{ id: null, name: "根目录" }], folders: [], files: [] };
+let archivedFiles = [];
+let showArchived = getArchivedViewFromUrl();
 let notice = null;
 let isLoading = true;
 
@@ -36,10 +39,15 @@ async function loadLibrary() {
   try {
     const folderLibrary = await listFolders(currentFolderId);
     const fileLibrary = currentFolderId ? await listFiles(currentFolderId) : { files: [] };
+    const archivedLibrary = currentFolderId && currentUser.role === "admin" && showArchived
+      ? await listFiles(currentFolderId, { status: "archived" })
+      : { files: [] };
     library = { ...folderLibrary, files: fileLibrary.files || [] };
+    archivedFiles = archivedLibrary.files || [];
     notice = null;
   } catch (error) {
     library = { currentFolder: null, breadcrumbs: [{ id: null, name: "根目录" }], folders: [], files: [] };
+    archivedFiles = [];
     notice = toNotice(error, "无法加载资料库，请稍后重试。");
   } finally {
     isLoading = false;
@@ -51,6 +59,7 @@ function renderPage() {
   const canManage = ["admin", "editor"].includes(currentUser.role);
   const canDelete = currentUser.role === "admin";
   const canUpload = canManage && Boolean(library.currentFolder?.id);
+  const canViewArchive = canDelete && Boolean(library.currentFolder?.id);
 
   app.innerHTML = `
     <div class="app-shell library-shell">
@@ -67,7 +76,7 @@ function renderPage() {
       <main class="library-main">
         <section class="library-heading">
           <div><span class="eyebrow">共享资料</span><h2>资料库</h2><p>Office 原始文件以私有方式保存；可在文件夹内上传新文件或新增版本。</p></div>
-          ${canManage ? `<div class="library-heading-actions"><button class="button button-ghost" id="createFolderButton" type="button"><i data-lucide="folder-plus"></i><span>新建文件夹</span></button>${canUpload ? '<button class="button button-primary" id="uploadFileButton" type="button"><i data-lucide="upload"></i><span>上传文件</span></button>' : '<span class="library-upload-guidance">请先进入或创建一个文件夹后上传。</span>'}</div>` : '<span class="readonly-badge"><i data-lucide="eye"></i>当前为只读模式</span>'}
+          ${canManage ? `<div class="library-heading-actions"><button class="button button-ghost" id="createFolderButton" type="button"><i data-lucide="folder-plus"></i><span>新建文件夹</span></button>${canViewArchive ? `<button class="button button-ghost" id="toggleArchivedButton" type="button"><i data-lucide="${showArchived ? "archive-restore" : "archive"}"></i><span>${showArchived ? "隐藏已归档" : "查看已归档"}</span></button>` : ""}${canUpload ? '<button class="button button-primary" id="uploadFileButton" type="button"><i data-lucide="upload"></i><span>上传文件</span></button>' : '<span class="library-upload-guidance">请先进入或创建一个文件夹后上传。</span>'}</div>` : '<span class="readonly-badge"><i data-lucide="eye"></i>当前为只读模式</span>'}
         </section>
         ${renderNotice()}
         <nav class="library-breadcrumbs" aria-label="资料库路径">
@@ -82,6 +91,7 @@ function renderPage() {
     ${renderFolderDialog()}
     ${renderFileDialog()}
     ${renderArchiveDialog()}
+    ${renderPurgeDialog()}
     ${renderDeleteDialog()}
   `;
 
@@ -91,7 +101,9 @@ function renderPage() {
 
 function renderLibraryContents(canManage, canDelete) {
   const isRootFolder = !library.currentFolder?.id;
-  const empty = !library.folders.length && !library.files.length;
+  const empty = !library.folders.length
+    && !library.files.length
+    && !(canDelete && showArchived && archivedFiles.length);
 
   return `
     ${empty ? `<div class="library-empty"><i data-lucide="folder-open"></i><h3>${library.currentFolder ? "这里还没有资料" : "从文件夹开始整理资料"}</h3><p>${library.currentFolder ? (canManage ? "上传 Office 文件或新建子文件夹。" : "管理员或编辑者上传资料后会显示在这里。") : (canManage ? "先新建或进入一个文件夹，再上传文件。" : "管理员或编辑者创建文件夹后会显示在这里。")}</p></div>` : ""}
@@ -102,7 +114,7 @@ function renderLibraryContents(canManage, canDelete) {
     ${isRootFolder ? renderRootUploadGuidance(canManage) : `<section class="library-content-section">
       <div class="library-content-heading"><h4><i data-lucide="file-text"></i>文件</h4><span>${library.files.length} 个</span></div>
       ${renderFiles(canManage, canDelete)}
-    </section>`}
+    </section>${canDelete && showArchived ? renderArchivedFiles() : ""}`}
   `;
 }
 
@@ -138,6 +150,18 @@ function renderFiles(canManage, canArchive) {
         ${canManage || canArchive ? `<td><div class="file-row-actions">${canManage ? `<button class="icon-button" type="button" data-version-file="${escapeAttribute(file.id)}" title="上传 ${escapeAttribute(file.name)} 的新版本" aria-label="上传 ${escapeAttribute(file.name)} 的新版本"><i data-lucide="upload"></i></button>` : ""}${canArchive ? `<button class="icon-button is-danger" type="button" data-archive-file="${escapeAttribute(file.id)}" title="归档 ${escapeAttribute(file.name)}" aria-label="归档 ${escapeAttribute(file.name)}"><i data-lucide="archive"></i></button>` : ""}</div></td>` : ""}
       </tr>`).join("")}</tbody>
     </table></div>
+  `;
+}
+
+function renderArchivedFiles() {
+  return `
+    <section class="library-content-section archived-files-section">
+      <div class="library-content-heading"><div><h4><i data-lucide="archive"></i>已归档文件</h4><p class="archived-files-note">仅管理员可见。永久删除会移除所有私有 R2 版本及 D1 文件元数据，且无法恢复。</p></div><span>${archivedFiles.length} 个</span></div>
+      ${archivedFiles.length ? `<div class="file-list-wrap"><table class="file-list"><thead><tr><th scope="col">名称</th><th scope="col">大小</th><th scope="col">类型</th><th scope="col">归档时间</th><th scope="col"><span class="visually-hidden">操作</span></th></tr></thead><tbody>${archivedFiles.map((file) => `<tr>
+        <td><span class="file-name"><i data-lucide="file"></i><strong>${escapeHtml(file.name)}</strong></span></td><td>${formatFileSize(file.size)}</td><td><span class="file-ext">.${escapeHtml(file.ext)}</span></td><td>${formatDate(file.updatedAt)}</td>
+        <td><div class="file-row-actions"><button class="icon-button is-danger" type="button" data-purge-file="${escapeAttribute(file.id)}" title="永久删除 ${escapeAttribute(file.name)}" aria-label="永久删除 ${escapeAttribute(file.name)}"><i data-lucide="trash-2"></i></button></div></td>
+      </tr>`).join("")}</tbody></table></div>` : '<p class="library-content-empty">当前文件夹没有已归档文件。</p>'}
+    </section>
   `;
 }
 
@@ -203,6 +227,20 @@ function renderArchiveDialog() {
   `;
 }
 
+function renderPurgeDialog() {
+  return `
+    <dialog class="management-dialog purge-file-dialog" id="purgeFileDialog">
+      <form id="purgeFileForm" method="dialog">
+        <div class="management-dialog-heading"><div><span class="eyebrow">不可恢复的管理员操作</span><h2>永久删除归档文件</h2></div><button class="icon-button" type="button" data-close-dialog="purgeFileDialog" aria-label="关闭"><i data-lucide="x"></i></button></div>
+        <p id="purgeFileMessage">此操作将永久删除文件。</p>
+        <p class="management-dialog-note">将删除全部私有 R2 历史版本及 D1 文件/版本元数据；审计记录会保留。此操作无法撤销。</p>
+        <label class="management-field"><span>输入 <code>PERMANENT DELETE</code> 确认</span><input id="purgeConfirmationInput" name="confirmation" autocomplete="off" required /></label>
+        <div class="management-dialog-actions"><button class="button button-ghost" type="button" data-close-dialog="purgeFileDialog">取消</button><button class="button button-danger" type="submit">永久删除</button></div>
+      </form>
+    </dialog>
+  `;
+}
+
 function bindPageActions() {
   document.querySelectorAll("[data-folder-id]").forEach((button) => {
     button.addEventListener("click", () => navigateToFolder(button.dataset.folderId || null));
@@ -215,6 +253,7 @@ function bindPageActions() {
   });
   document.querySelector("#createFolderButton")?.addEventListener("click", () => openFolderDialog("create"));
   document.querySelector("[data-create-root-folder]")?.addEventListener("click", () => openFolderDialog("create"));
+  document.querySelector("#toggleArchivedButton")?.addEventListener("click", toggleArchivedFiles);
   document.querySelector("#uploadFileButton")?.addEventListener("click", () => openFileDialog("upload"));
   document.querySelectorAll("[data-rename-folder]").forEach((button) => {
     button.addEventListener("click", () => openFolderDialog("rename", button.dataset.renameFolder));
@@ -228,10 +267,14 @@ function bindPageActions() {
   document.querySelectorAll("[data-archive-file]").forEach((button) => {
     button.addEventListener("click", () => openArchiveDialog(button.dataset.archiveFile));
   });
+  document.querySelectorAll("[data-purge-file]").forEach((button) => {
+    button.addEventListener("click", () => openPurgeDialog(button.dataset.purgeFile));
+  });
   document.querySelector("#folderForm")?.addEventListener("submit", submitFolderForm);
   document.querySelector("#deleteFolderForm")?.addEventListener("submit", submitDeleteForm);
   document.querySelector("#fileForm")?.addEventListener("submit", submitFileForm);
   document.querySelector("#archiveFileForm")?.addEventListener("submit", submitArchiveFileForm);
+  document.querySelector("#purgeFileForm")?.addEventListener("submit", submitPurgeFileForm);
 }
 
 function navigateToFolder(id) {
@@ -239,6 +282,15 @@ function navigateToFolder(id) {
   const url = new URL(window.location.href);
   if (currentFolderId) url.searchParams.set("folder", currentFolderId);
   else url.searchParams.delete("folder");
+  window.history.pushState(null, "", `${url.pathname}${url.search}`);
+  loadLibrary();
+}
+
+function toggleArchivedFiles() {
+  showArchived = !showArchived;
+  const url = new URL(window.location.href);
+  if (showArchived) url.searchParams.set("archived", "1");
+  else url.searchParams.delete("archived");
   window.history.pushState(null, "", `${url.pathname}${url.search}`);
   loadLibrary();
 }
@@ -376,9 +428,45 @@ async function submitArchiveFileForm(event) {
   }
 }
 
+function openPurgeDialog(fileId) {
+  const file = archivedFiles.find((item) => item.id === fileId);
+  if (!file) return;
+  const dialog = document.querySelector("#purgeFileDialog");
+  const form = document.querySelector("#purgeFileForm");
+  form.reset();
+  form.dataset.fileId = file.id;
+  form.dataset.fileName = file.name;
+  document.querySelector("#purgeFileMessage").textContent = `确认永久删除“${file.name}”及其全部版本吗？`;
+  dialog.showModal();
+  document.querySelector("#purgeConfirmationInput").focus();
+}
+
+async function submitPurgeFileForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const submit = form.querySelector("[type='submit']");
+  const confirmation = new FormData(form).get("confirmation");
+  submit.disabled = true;
+
+  try {
+    await purgeFile(form.dataset.fileId, { confirmation, fileName: form.dataset.fileName });
+    document.querySelector("#purgeFileDialog")?.close();
+    notice = { type: "success", text: "归档文件及其全部版本已永久删除；审计记录已保留。" };
+    await loadLibrary();
+  } catch (error) {
+    notice = toNotice(error, "永久删除失败，请重试。");
+    document.querySelector("#purgeFileDialog")?.close();
+    renderPage();
+  }
+}
+
 function getFolderIdFromUrl() {
   const value = new URL(window.location.href).searchParams.get("folder");
   return value || null;
+}
+
+function getArchivedViewFromUrl() {
+  return new URL(window.location.href).searchParams.get("archived") === "1";
 }
 
 function toNotice(error, fallback) {

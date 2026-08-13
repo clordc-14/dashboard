@@ -23,3 +23,11 @@ export async function cleanupPrivateFile(bucket, key) {
     // Preserve the original D1 or concurrency error and never report cleanup as success.
   }
 }
+
+export async function deletePrivateFiles(bucket, keys) {
+  const uniqueKeys = [...new Set(keys.filter(Boolean))];
+
+  if (uniqueKeys.length) {
+    await bucket.delete(uniqueKeys);
+  }
+}
