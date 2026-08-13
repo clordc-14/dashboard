@@ -1,4 +1,4 @@
-import { ensureUser, normalizeEmail, requireDb } from "./db.js";
+import { ensureUser, normalizeEmail, requireDb, VALID_ROLES } from "./db.js";
 import { HttpError } from "./http.js";
 
 const ACCESS_JWT_HEADER = "cf-access-jwt-assertion";
@@ -15,8 +15,10 @@ export async function authenticateRequest(context) {
 
   if (context.env.DB) {
     const defaultRole = getDefaultRole(context.env, identity.email, environment);
+    const user = await ensureUser(context.env.DB, identity, defaultRole);
+    const developmentRole = environment === "development" ? getDevelopmentRoleOverride(context.env) : null;
 
-    return ensureUser(context.env.DB, identity, defaultRole);
+    return developmentRole ? { ...user, role: developmentRole } : user;
   }
 
   if (environment !== "development") {
@@ -65,6 +67,12 @@ function getDefaultRole(env, email, environment) {
   return getInitialAdminEmails(env.INITIAL_ADMIN_EMAILS).has(normalizeEmail(email))
     ? "admin"
     : "viewer";
+}
+
+function getDevelopmentRoleOverride(env) {
+  const role = String(env.DEV_USER_ROLE || "").trim().toLowerCase();
+
+  return VALID_ROLES.has(role) ? role : null;
 }
 
 function getInitialAdminEmails(value) {
