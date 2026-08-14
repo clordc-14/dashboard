@@ -52,6 +52,7 @@ This section is the latest constraint on every earlier statement in this plan. W
 4. PDF (`.pdf`), Word (`.docx`), and PowerPoint (`.pptx`) are controlled reference material for a later AI assistant. They neither update the dashboard automatically nor go to an external model automatically. Text extraction, retrieval, and questions must re-check library authorization.
 5. Preserve the existing library-operation boundary: admin manages users, archive/permanent deletion, and dashboard publication; editor creates/renames folders and uploads files/new versions; viewer has no read-only library access.
 6. Admin, editor, and viewer may export the currently rendered report page as PDF. That export contains only structured page data and the rendered view; it cannot contain or link any original upload.
+7. A later dashboard-upload flow must offer both **local Excel selection** and **Select Excel from Library**. The library path lists only active `.xlsx` / `.xls` metadata to an admin, pins the selected file and file-version, and has the server read the private R2 object internally for parsing and publication. It must not download the source to the browser or expose an object URL/R2 key. Editor may upload or version a library Excel but may not start this import/publication flow; viewer cannot see or use it. PDF, Word, and PowerPoint files never appear in this dashboard-source picker.
 
 ---
 
@@ -761,11 +762,14 @@ CREATE TABLE IF NOT EXISTS file_versions (
 CREATE TABLE IF NOT EXISTS dashboard_imports (
   id TEXT PRIMARY KEY,
   file_id TEXT,
+  file_version_id TEXT,
+  source_kind TEXT NOT NULL DEFAULT 'local' CHECK(source_kind IN ('local', 'library')),
   imported_by TEXT NOT NULL,
   is_current INTEGER NOT NULL DEFAULT 0,
   meta_json TEXT NOT NULL,
   created_at TEXT NOT NULL,
   FOREIGN KEY(file_id) REFERENCES files(id),
+  FOREIGN KEY(file_version_id) REFERENCES file_versions(id),
   FOREIGN KEY(imported_by) REFERENCES users(id)
 );
 
@@ -1186,8 +1190,10 @@ File changes:
 Add:
   src/parser/buildDashboardState.js
   functions/api/dashboard/import.js
+  functions/api/dashboard/import-from-library.js
   functions/api/dashboard/latest.js
   functions/lib/dashboardState.js
+  functions/lib/libraryDashboardImport.js
 
 Modify:
   src/main.js
@@ -1198,17 +1204,18 @@ Frontend notes:
 
 ```text
 1. Move buildDashboardState(workbook) out of src/main.js into src/parser/buildDashboardState.js.
-2. Homepage upload still parses Excel in browser.
-3. Save parsed state to local IndexedDB as before.
-4. If user is authenticated and API is available, POST dashboardState to /api/dashboard/import.
-5. Remote import failure must not break local parsing success.
-6. Import/publication requires admin; the server writes import actor and summary to audit_logs and never accepts imported_by from the client.
+2. The homepage import control offers two sources: local Excel still parses in the browser, while **Select Excel from Library** opens an admin-only picker for active `.xlsx` / `.xls` files and their current version.
+3. A library selection sends only `{ fileId, fileVersionId }` to the server; it never sends the original bytes back to the browser or reveals an R2 key/object URL.
+4. `POST /api/dashboard/import-from-library` re-checks admin and library authorization, validates the active Excel file/version, reads that version from private R2 internally, and produces the same compatible dashboardState import result.
+5. Save parsed state to local IndexedDB as before for the local-upload path. Remote import failure must not break local parsing success, and a failed library parse must not replace the current published dashboard.
+6. Import/publication requires admin; the server writes the actor, source kind, source file/version IDs, and summary to audit_logs and never accepts imported_by from the client.
 ```
 
 API:
 
 ```text
 POST /api/dashboard/import
+POST /api/dashboard/import-from-library
 GET  /api/dashboard/latest
 ```
 
@@ -1217,6 +1224,7 @@ D1 mapping:
 ```text
 dashboard_imports:
   one row per import; only one current import
+  record source_kind (local or library), nullable file_id (source file), and nullable file_version_id
 
 datasets:
   one row per news/table section
@@ -1249,6 +1257,7 @@ Self-check:
 5. innovativeDrugPool and drugScore keys are present when imported source contains them.
 6. Local IndexedDB fallback still works.
 7. Viewer/editor POST import receives 403; admin imports carry correct actor audit data.
+8. A library Excel selection imports the pinned active version without an original-file download, and a PDF/DOCX/PPTX selection is rejected.
 ```
 
 User local verification:
@@ -1258,6 +1267,7 @@ User local verification:
 2. Confirm existing pages update.
 3. Refresh page and confirm remote dashboard can be loaded.
 4. Confirm homepage, table, search, brand analysis, product analysis, and target analysis still work.
+5. As admin, select an Excel already in the library, publish it, and confirm the audit record identifies the source file/version without exposing a download URL.
 ```
 
 Commit:

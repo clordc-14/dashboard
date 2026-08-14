@@ -6,7 +6,7 @@
 
 ## 已确认的资料库范围修订（2026-08-13）
 
-本修订优先于本文档中的旧角色和 Phase 描述：资料库只向 admin、editor 开放，viewer 只能访问报表看板并导出页面 PDF；viewer 的资料库页面和 API 请求必须被拒绝。所有上传文件均禁止下载，R2 必须私有，浏览器不得取得对象 URL、预签名 URL 或 R2 key。支持 `.xlsx`、`.xls` 作为 Excel 看板数据源，`.pdf`、`.docx`、`.pptx` 作为后续 AI 助手分析资料；非 Excel 文件不得自动更新看板或自动发送给外部 AI。既有操作边界不变：editor 可维护文件夹、上传文件/版本，admin 负责归档、永久删除和 Excel 看板发布。所有角色均可导出当前渲染页面 PDF，但该 PDF 不含原始上传附件。
+本修订优先于本文档中的旧角色和 Phase 描述：资料库只向 admin、editor 开放，viewer 只能访问报表看板并导出页面 PDF；viewer 的资料库页面和 API 请求必须被拒绝。所有上传文件均禁止下载，R2 必须私有，浏览器不得取得对象 URL、预签名 URL 或 R2 key。支持 `.xlsx`、`.xls` 作为 Excel 看板数据源，`.pdf`、`.docx`、`.pptx` 作为后续 AI 助手分析资料；非 Excel 文件不得自动更新看板或自动发送给外部 AI。既有操作边界不变：editor 可维护文件夹、上传文件/版本，admin 负责归档、永久删除和 Excel 看板发布。后续 Phase 4 的“上传 Excel/表格”控件还应支持从资料库选择 active Excel 文件的固定版本：服务端从私有 R2 内部读取并解析，浏览器只提交文件/版本 ID，不能下载或取得对象 URL；只有 admin 能导入发布，PDF/Word/PPT 不得作为看板来源。所有角色均可导出当前渲染页面 PDF，但该 PDF 不含原始上传附件。
 
 ---
 
@@ -518,6 +518,24 @@ CREATE INDEX IF NOT EXISTS idx_file_versions_file_id ON file_versions(file_id);
 
 一个上传文件可以解析出一个或多个 dataset。
 
+Phase 4 还需增加 `dashboard_imports`，用于记录一次看板发布所使用的来源。资料库来源必须固定到文件版本，而不是只记录最新文件：
+
+```sql
+CREATE TABLE IF NOT EXISTS dashboard_imports (
+  id TEXT PRIMARY KEY,
+  file_id TEXT,
+  file_version_id TEXT,
+  source_kind TEXT NOT NULL CHECK(source_kind IN ('local', 'library')),
+  imported_by TEXT NOT NULL,
+  is_current INTEGER NOT NULL DEFAULT 0,
+  meta_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  FOREIGN KEY(file_id) REFERENCES files(id),
+  FOREIGN KEY(file_version_id) REFERENCES file_versions(id),
+  FOREIGN KEY(imported_by) REFERENCES users(id)
+);
+```
+
 ```sql
 CREATE TABLE IF NOT EXISTS datasets (
   id TEXT PRIMARY KEY,
@@ -787,7 +805,11 @@ API 触发解析
 
 ```text
 GET /api/dashboard/latest
+POST /api/dashboard/import
+POST /api/dashboard/import-from-library
 ```
+
+`/api/dashboard/import-from-library` 是后续 Phase 4 的资料库数据源入口：仅 admin 可调用，请求只包含 `fileId` 和 `fileVersionId`。服务端必须再次校验资料库权限、文件状态和 `.xlsx` / `.xls` 类型，再从私有 R2 内部读取固定版本并解析；不得向浏览器返回原始文件、R2 key 或对象 URL。导入审计和 dashboard import 记录必须保存来源文件/版本 ID。
 
 目标：返回和当前 `demoWorkbookState` / `dashboardState` 尽量一致的结构。
 
@@ -1093,6 +1115,20 @@ MVP 中首页上传 Excel 后：
 3. 原始 Excel 保存到 R2。
 4. 当前页面刷新 remote dashboardState。
 ```
+
+后续还要增加第二条来源：
+
+```text
+管理员在“从资料库选择 Excel”中选择 active 的 .xlsx/.xls 固定版本
+  ↓
+浏览器仅 POST fileId + fileVersionId
+  ↓
+服务端在私有 R2 内部读取并解析该版本
+  ↓
+复用 dashboardState 导入、审计和发布流程
+```
+
+该流程不是文件下载；editor 只能上传/新增资料库文件版本，viewer 不可见，PDF/Word/PPT 不可选作看板数据源。
 
 ### 9.6 表格页在线编辑
 
@@ -1468,11 +1504,12 @@ npm run build 通过。
 ```text
 1. 从 src/main.js 中提取 buildDashboardState 到 src/parser/buildDashboardState.js。
 2. 新增 POST /api/dashboard/import。
-3. 前端上传 Excel 后，继续沿用现有前端解析逻辑生成 dashboardState。
-4. 将 dashboardState 提交给 /api/dashboard/import。
-5. 后端把 newsSections / tableSections 拆入 datasets / dataset_rows。
-6. 实现 GET /api/dashboard/latest。
-7. POST /api/dashboard/import 只允许 admin，并为导入/发布写入操作者审计；editor/viewer 必须得到 403。
+3. 新增 POST /api/dashboard/import-from-library；请求只允许 `{ fileId, fileVersionId }`，由服务端从私有 R2 内部读取固定的 active `.xlsx` / `.xls` 版本并解析。
+4. 前端本地上传 Excel 后，继续沿用现有前端解析逻辑生成 dashboardState，并将 dashboardState 提交给 /api/dashboard/import。
+5. 前端增加“从资料库选择 Excel”入口；只有 admin 可见，且 PDF/Word/PPT 不可选。资料库来源的解析失败不得替换当前已发布看板。
+6. 后端把 newsSections / tableSections 拆入 datasets / dataset_rows，并在 dashboard import/audit 中记录来源类型和来源文件/版本 ID。
+7. 实现 GET /api/dashboard/latest。
+8. 两个导入 API 都只允许 admin，并为导入/发布写入操作者审计；editor/viewer 必须得到 403，浏览器不得得到原始文件、R2 key 或对象 URL。
 ```
 
 验收：
@@ -1482,6 +1519,7 @@ npm run build 通过。
 刷新页面后可以从 /api/dashboard/latest 获取远程数据。
 返回结构与当前 dashboardState 兼容。
 首页、完整表格、搜索、厂牌分析、品种分析、靶点分析都可使用远程数据。
+admin 可从资料库选择一个 Excel 固定版本并发布；审计记录可追溯该文件/版本，且流程中不产生原始文件下载。
 npm run build 通过。
 ```
 

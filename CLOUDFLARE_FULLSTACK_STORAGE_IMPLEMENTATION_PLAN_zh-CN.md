@@ -65,6 +65,7 @@ Cloudflare Pages 静态前端
 4. PDF（`.pdf`）、Word（`.docx`）和 PPT（`.pptx`）只作为后续人工智能助手的受控分析资料，不自动解析进看板，也不自动发送给外部模型。资料文本提取、检索和提问时必须再次校验资料库权限。
 5. 保持既有资料库操作边界：admin 管理用户、归档/永久删除文件和发布看板；editor 可创建/重命名文件夹、上传文件与新版本；viewer 不获得资料库只读权限。
 6. admin、editor、viewer 均可导出当前已渲染的报表页面 PDF。导出内容只能是页面结构化数据和视觉结果，不能包含或链接任何原始上传文件。
+7. 后续“上传表格/导入看板”流程必须同时支持**本地选择 Excel**和**从资料库选择 Excel**。资料库路径只向 admin 列出 active 状态的 `.xlsx` / `.xls` 元数据，固定所选文件及文件版本，并由服务端在私有 R2 内部读取、解析和发布；不得把原始文件下载到浏览器，也不得暴露对象 URL 或 R2 key。editor 可向资料库上传或新增 Excel 版本，但不能发起该导入/发布；viewer 不显示也不能使用该入口。PDF、Word、PPT 不得出现在看板数据源选择器中。
 
 ---
 
@@ -785,11 +786,14 @@ CREATE TABLE IF NOT EXISTS file_versions (
 CREATE TABLE IF NOT EXISTS dashboard_imports (
   id TEXT PRIMARY KEY,
   file_id TEXT,
+  file_version_id TEXT,
+  source_kind TEXT NOT NULL DEFAULT 'local' CHECK(source_kind IN ('local', 'library')),
   imported_by TEXT NOT NULL,
   is_current INTEGER NOT NULL DEFAULT 0,
   meta_json TEXT NOT NULL,
   created_at TEXT NOT NULL,
   FOREIGN KEY(file_id) REFERENCES files(id),
+  FOREIGN KEY(file_version_id) REFERENCES file_versions(id),
   FOREIGN KEY(imported_by) REFERENCES users(id)
 );
 
@@ -1210,8 +1214,10 @@ git commit -m "Phase 3: add R2 file upload"
 新增：
   src/parser/buildDashboardState.js
   functions/api/dashboard/import.js
+  functions/api/dashboard/import-from-library.js
   functions/api/dashboard/latest.js
   functions/lib/dashboardState.js
+  functions/lib/libraryDashboardImport.js
 
 修改：
   src/main.js
@@ -1222,17 +1228,18 @@ git commit -m "Phase 3: add R2 file upload"
 
 ```text
 1. 从 src/main.js 中提取 buildDashboardState(workbook) 到 src/parser/buildDashboardState.js。
-2. 首页上传仍在浏览器内解析 Excel。
-3. 继续把解析结果保存到本地 IndexedDB。
-4. 如果用户已认证且 API 可用，把 dashboardState POST 到 /api/dashboard/import。
-5. 远程 import 失败不得影响本地解析成功。
-6. import/发布只允许 admin；导入者和导入摘要写入 audit_logs，客户端不能指定 imported_by。
+2. 首页导入控件提供两个来源：本地 Excel 仍在浏览器内解析；“从资料库选择 Excel”只向 admin 打开 active 状态 `.xlsx` / `.xls` 及其当前版本的选择器。
+3. 资料库选择只向服务端提交 `{ fileId, fileVersionId }`；不得把原始字节回传浏览器，也不得暴露 R2 key 或对象 URL。
+4. `POST /api/dashboard/import-from-library` 再次校验 admin 和资料库权限，校验 active 的 Excel 文件/版本后在私有 R2 内部读取，生成与既有流程兼容的 dashboardState 导入结果。
+5. 本地上传路径继续把解析结果保存到 IndexedDB。远程导入失败不得影响本地解析成功；资料库文件解析失败不得替换当前已发布看板。
+6. import/发布只允许 admin；导入者、来源类型、来源文件/版本 ID 和导入摘要写入 audit_logs，客户端不能指定 imported_by。
 ```
 
 API：
 
 ```text
 POST /api/dashboard/import
+POST /api/dashboard/import-from-library
 GET  /api/dashboard/latest
 ```
 
@@ -1241,6 +1248,7 @@ D1 映射：
 ```text
 dashboard_imports:
   每次导入一条记录，只允许一个 current import
+  记录 source_kind（local 或 library）及可空的 file_id（来源文件）/file_version_id
 
 datasets:
   每个 news/table section 一条记录
@@ -1273,6 +1281,7 @@ Codex 自检：
 5. 导入源含有 innovativeDrugPool 和 drugScore 时，latest 中仍有这些 key。
 6. 本地 IndexedDB fallback 仍可用。
 7. viewer/editor POST import 均返回 403；admin 的导入记录包含正确操作者审计。
+8. 从资料库选择 Excel 时导入固定的 active 版本，不产生原始文件下载；选择 PDF/DOCX/PPTX 必须被拒绝。
 ```
 
 用户本地验证：
@@ -1282,6 +1291,7 @@ Codex 自检：
 2. 确认现有页面更新。
 3. 刷新页面，确认可加载远程 dashboard。
 4. 确认首页、表格、搜索、厂牌分析、品种分析、靶点分析仍可用。
+5. 以 admin 身份从资料库选择一个 Excel 并发布，确认审计记录包含来源文件/版本，且不出现下载 URL。
 ```
 
 提交：
