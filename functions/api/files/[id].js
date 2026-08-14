@@ -1,4 +1,4 @@
-import { requireAdmin, requireAuthenticatedUser, requireSameOriginRequest } from "../../lib/authorization.js";
+import { requireAdmin, requireLibraryUser, requireSameOriginRequest } from "../../lib/authorization.js";
 import { createConditionalAuditStatement } from "../../lib/audit.js";
 import { requireDb } from "../../lib/db.js";
 import { mapFile, mapFileVersion, requireFileById } from "../../lib/files.js";
@@ -7,7 +7,7 @@ import { HttpError, json, methodNotAllowed } from "../../lib/http.js";
 const NO_STORE_HEADERS = { "cache-control": "no-store" };
 
 export async function onRequestGet(context) {
-  const actor = requireAuthenticatedUser(context);
+  const actor = requireLibraryUser(context);
   const db = requireDb(context.env);
   const file = await requireFileById(db, context.params.id);
 

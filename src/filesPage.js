@@ -75,7 +75,7 @@ function renderPage() {
       </header>
       <main class="library-main">
         <section class="library-heading">
-          <div><span class="eyebrow">共享资料</span><h2>资料库</h2><p>Office 原始文件以私有方式保存；可在文件夹内上传新文件或新增版本。</p></div>
+          <div><span class="eyebrow">共享资料</span><h2>资料库</h2><p>原始资料以私有方式保存；可在文件夹内上传新文件或新增版本。</p></div>
           ${canManage ? `<div class="library-heading-actions"><button class="button button-ghost" id="createFolderButton" type="button"><i data-lucide="folder-plus"></i><span>新建文件夹</span></button>${canViewArchive ? `<button class="button button-ghost" id="toggleArchivedButton" type="button"><i data-lucide="${showArchived ? "archive-restore" : "archive"}"></i><span>${showArchived ? "隐藏已归档" : "查看已归档"}</span></button>` : ""}${canUpload ? '<button class="button button-primary" id="uploadFileButton" type="button"><i data-lucide="upload"></i><span>上传文件</span></button>' : '<span class="library-upload-guidance">请先进入或创建一个文件夹后上传。</span>'}</div>` : '<span class="readonly-badge"><i data-lucide="eye"></i>当前为只读模式</span>'}
         </section>
         ${renderNotice()}
@@ -106,7 +106,7 @@ function renderLibraryContents(canManage, canDelete) {
     && !(canDelete && showArchived && archivedFiles.length);
 
   return `
-    ${empty ? `<div class="library-empty"><i data-lucide="folder-open"></i><h3>${library.currentFolder ? "这里还没有资料" : "从文件夹开始整理资料"}</h3><p>${library.currentFolder ? (canManage ? "上传 Office 文件或新建子文件夹。" : "管理员或编辑者上传资料后会显示在这里。") : (canManage ? "先新建或进入一个文件夹，再上传文件。" : "管理员或编辑者创建文件夹后会显示在这里。")}</p></div>` : ""}
+    ${empty ? `<div class="library-empty"><i data-lucide="folder-open"></i><h3>${library.currentFolder ? "这里还没有资料" : "从文件夹开始整理资料"}</h3><p>${library.currentFolder ? (canManage ? "上传资料或新建子文件夹。" : "管理员或编辑者上传资料后会显示在这里。") : (canManage ? "先新建或进入一个文件夹，再上传文件。" : "管理员或编辑者创建文件夹后会显示在这里。")}</p></div>` : ""}
     <section class="library-content-section">
       <div class="library-content-heading"><h4><i data-lucide="folder"></i>文件夹</h4><span>${library.folders.length} 个</span></div>
       ${renderFolders(canManage, canDelete)}
@@ -122,7 +122,7 @@ function renderRootUploadGuidance(canManage) {
   return `
     <section class="root-upload-guidance">
       <i data-lucide="folder-tree"></i>
-      <div><h4>文件需要存放在文件夹中</h4><p>${canManage ? "请新建或进入一个文件夹后上传 Office 文件。这样每份资料都能保持清晰的归属、版本记录与权限审计。" : "管理员或编辑者会在文件夹内上传和管理资料；请选择一个文件夹查看文件内容。"}</p></div>
+      <div><h4>文件需要存放在文件夹中</h4><p>${canManage ? "请新建或进入一个文件夹后上传资料。这样每份资料都能保持清晰的归属、版本记录与权限审计。" : "管理员或编辑者会在文件夹内上传和管理资料；请选择一个文件夹查看文件内容。"}</p></div>
       ${canManage ? '<button class="button button-primary" type="button" data-create-root-folder><i data-lucide="folder-plus"></i><span>新建文件夹</span></button>' : ""}
     </section>
   `;
@@ -206,8 +206,8 @@ function renderFileDialog() {
     <dialog class="management-dialog" id="fileDialog">
       <form id="fileForm" method="dialog">
         <div class="management-dialog-heading"><div><span class="eyebrow" id="fileDialogEyebrow">私有资料</span><h2 id="fileDialogTitle">上传文件</h2></div><button class="icon-button" type="button" data-close-dialog="fileDialog" aria-label="关闭"><i data-lucide="x"></i></button></div>
-        <label class="management-field"><span>Office 文件</span><input id="fileInput" name="file" type="file" accept=".xlsx,.xls,.docx,.pptx" required /></label>
-        <p class="management-dialog-note" id="fileDialogNote">支持 .xlsx、.xls、.docx、.pptx；大小由服务器限制（默认 20 MB）。文件内容不会生成公开链接。</p>
+        <label class="management-field"><span>资料文件</span><input id="fileInput" name="file" type="file" accept=".xlsx,.xls,.pdf,.docx,.pptx" required /></label>
+        <p class="management-dialog-note" id="fileDialogNote">支持 .xlsx、.xls、.pdf、.docx、.pptx；大小由服务器限制（默认 20 MB）。文件内容不会生成公开链接。</p>
         <div class="management-dialog-actions"><button class="button button-ghost" type="button" data-close-dialog="fileDialog">取消</button><button class="button button-primary" id="fileSubmitButton" type="submit">开始上传</button></div>
       </form>
     </dialog>
@@ -370,8 +370,8 @@ function openFileDialog(mode, fileId = "") {
   document.querySelector("#fileDialogEyebrow").textContent = isVersion ? "文件版本" : "私有资料";
   document.querySelector("#fileDialogTitle").textContent = isVersion ? "上传新版本" : "上传文件";
   document.querySelector("#fileDialogNote").textContent = isVersion
-    ? `将为“${file?.name || "当前文件"}”创建新版本。支持 .xlsx、.xls、.docx、.pptx；文件不会生成公开链接。`
-    : "支持 .xlsx、.xls、.docx、.pptx；大小由服务器限制（默认 20 MB）。文件内容不会生成公开链接。";
+    ? `将为“${file?.name || "当前文件"}”创建新版本。支持 .xlsx、.xls、.pdf、.docx、.pptx；文件不会生成公开链接。`
+    : "支持 .xlsx、.xls、.pdf、.docx、.pptx；大小由服务器限制（默认 20 MB）。文件内容不会生成公开链接。";
   document.querySelector("#fileSubmitButton").textContent = isVersion ? "上传新版本" : "开始上传";
   dialog.showModal();
 }
@@ -476,7 +476,7 @@ function toNotice(error, fallback) {
   if (error?.status === 404) return { type: "error", text: "目标文件或文件夹不存在，列表已刷新。" };
   if (error?.status === 409) return { type: "error", text: error.message || "当前文件夹暂时不能执行该操作。" };
   if (error?.status === 413) return { type: "error", text: "文件超过了允许的大小限制。" };
-  if (error?.status === 415) return { type: "error", text: "仅支持 .xlsx、.xls、.docx、.pptx 文件。" };
+  if (error?.status === 415) return { type: "error", text: "仅支持 .xlsx、.xls、.pdf、.docx、.pptx 文件。" };
   if (error?.status >= 500) return { type: "error", text: "服务器暂时无法完成此操作，请稍后重试或检查管理员配置。" };
   return { type: "error", text: error?.message || fallback };
 }
@@ -485,8 +485,8 @@ function validateFileForUpload(file) {
   if (!file) throw new Error("请选择要上传的文件。");
   const ext = file.name.split(".").pop()?.toLowerCase();
 
-  if (!["xlsx", "xls", "docx", "pptx"].includes(ext)) {
-    throw new ApiError(415, "仅支持 .xlsx、.xls、.docx、.pptx 文件。");
+  if (!["xlsx", "xls", "pdf", "docx", "pptx"].includes(ext)) {
+    throw new ApiError(415, "仅支持 .xlsx、.xls、.pdf、.docx、.pptx 文件。");
   }
 
 }

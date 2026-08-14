@@ -18,6 +18,10 @@ export function isAdministrator(user) {
   return user?.role === "admin";
 }
 
+export function canAccessLibrary(user) {
+  return ["admin", "editor"].includes(user?.role);
+}
+
 export function formatRole(user) {
   return {
     admin: "管理员",

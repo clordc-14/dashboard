@@ -1,4 +1,4 @@
-import { requireAdmin, requireAuthenticatedUser } from "../../lib/authorization.js";
+import { requireAdmin, requireLibraryUser } from "../../lib/authorization.js";
 import { requireDb } from "../../lib/db.js";
 import { mapFile } from "../../lib/files.js";
 import { requireFolderById } from "../../lib/folders.js";
@@ -7,7 +7,7 @@ import { HttpError, json, methodNotAllowed } from "../../lib/http.js";
 const NO_STORE_HEADERS = { "cache-control": "no-store" };
 
 export async function onRequestGet(context) {
-  requireAuthenticatedUser(context);
+  requireLibraryUser(context);
   const db = requireDb(context.env);
   const url = new URL(context.request.url);
   const folderId = url.searchParams.get("folderId");

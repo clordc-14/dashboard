@@ -1,4 +1,4 @@
-import { requireAuthenticatedUser, requireFolderManager, requireJsonSameOriginRequest } from "../../lib/authorization.js";
+import { requireFolderManager, requireJsonSameOriginRequest, requireLibraryUser } from "../../lib/authorization.js";
 import { createAuditStatement } from "../../lib/audit.js";
 import { requireDb } from "../../lib/db.js";
 import {
@@ -12,7 +12,7 @@ import {
 import { HttpError, json, methodNotAllowed, readJson } from "../../lib/http.js";
 
 export async function onRequestGet(context) {
-  requireAuthenticatedUser(context);
+  requireLibraryUser(context);
   const db = requireDb(context.env);
   const parentId = parseParentId(new URL(context.request.url).searchParams.get("parentId"));
   const parentFolder = parentId ? await requireFolderById(db, parentId, "Parent folder") : null;

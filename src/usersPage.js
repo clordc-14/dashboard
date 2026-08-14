@@ -1,6 +1,6 @@
 import { createIcons, icons } from "lucide";
 import { listUsers, updateUserRole } from "./services/apiClient.js";
-import { formatRole, isAdministrator, loadCurrentUser } from "./userSession.js";
+import { canAccessLibrary, formatRole, isAdministrator, loadCurrentUser } from "./userSession.js";
 import "./styles/base.css";
 import "./styles/dashboard.css";
 
@@ -83,7 +83,7 @@ function renderAdminPage() {
 
 function renderAccessDenied() {
   return `
-    <section class="access-denied"><i data-lucide="shield-alert"></i><span class="eyebrow">访问受限</span><h2>仅管理员可以管理用户</h2><p>当前身份为${escapeHtml(formatRole(currentUser))}。即使直接访问本页，服务端也会拒绝用户列表和角色变更请求。</p><a class="button button-primary" href="/files.html"><i data-lucide="folder-open"></i><span>进入资料库</span></a></section>
+    <section class="access-denied"><i data-lucide="shield-alert"></i><span class="eyebrow">访问受限</span><h2>仅管理员可以管理用户</h2><p>当前身份为${escapeHtml(formatRole(currentUser))}。即使直接访问本页，服务端也会拒绝用户列表和角色变更请求。</p><a class="button button-primary" href="${canAccessLibrary(currentUser) ? "/files.html" : "/"}"><i data-lucide="${canAccessLibrary(currentUser) ? "folder-open" : "layout-dashboard"}"></i><span>${canAccessLibrary(currentUser) ? "进入资料库" : "返回经营看板"}</span></a></section>
   `;
 }
 

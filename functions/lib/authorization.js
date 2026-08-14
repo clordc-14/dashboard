@@ -29,6 +29,10 @@ export function requireFolderManager(context) {
   return requireRole(context, ["admin", "editor"]);
 }
 
+export function requireLibraryUser(context) {
+  return requireRole(context, ["admin", "editor"]);
+}
+
 export function requireJsonSameOriginRequest(request) {
   const contentType = request.headers.get("content-type") || "";
 

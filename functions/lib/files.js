@@ -9,6 +9,7 @@ const MAX_SAFE_FILE_NAME_LENGTH = 160;
 const FILE_TYPES = new Map([
   ["xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
   ["xls", "application/vnd.ms-excel"],
+  ["pdf", "application/pdf"],
   ["docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
   ["pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"]
 ]);
@@ -164,7 +165,7 @@ function getSupportedFileType(name) {
   const mimeType = FILE_TYPES.get(ext);
 
   if (!mimeType) {
-    throw new HttpError(415, "Only .xlsx, .xls, .docx, and .pptx files are supported");
+    throw new HttpError(415, "Only .xlsx, .xls, .pdf, .docx, and .pptx files are supported");
   }
 
   return { ext, mimeType };
