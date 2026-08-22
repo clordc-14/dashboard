@@ -223,8 +223,9 @@ export function getInnovativePoolRangeAnalysis(section, startMonth, endMonth) {
   const peakMonth = [...trendRows].sort((left, right) => right.newDrugCount - left.newDrugCount || right.month.localeCompare(left.month))[0] || null;
   const landedRate = totals.newDrugCount ? Math.round((totals.landedSichuanCount / totals.newDrugCount) * 100) : 0;
   const archiveRate = totals.landedSichuanCount ? Math.round((totals.southwestArchivedCount / totals.landedSichuanCount) * 100) : 0;
+  const salesTotal = getInnovativePoolSalesAmount(section, rangeStart, rangeEnd);
 
-  return { startMonth: rangeStart, endMonth: rangeEnd, trendRows, totals, peakMonth, landedRate, archiveRate };
+  return { startMonth: rangeStart, endMonth: rangeEnd, trendRows, totals, peakMonth, landedRate, archiveRate, salesTotal };
 }
 
 export function renderInnovativePoolOverview(body, analysis) {
@@ -607,10 +608,8 @@ function createPoolMetrics(analysis) {
 
 function createInnovationPoolHighlights(analysis) {
   const periodLabel = analysis.startMonth === analysis.endMonth ? getMonthLabel(analysis.startMonth) : `${getMonthLabel(analysis.startMonth)}—${getMonthLabel(analysis.endMonth)}`;
-  const peakMonthLabel = analysis.peakMonth ? getMonthLabel(analysis.peakMonth.month) : "暂无数据";
-  const peakMonthValue = analysis.peakMonth?.newDrugCount || 0;
   const items = [
-    { icon: "calendar-days", label: "上市高峰月", detail: peakMonthLabel, value: peakMonthValue, unit: "个" },
+    { icon: "banknote", label: "区间销售额", detail: `${periodLabel}创新药销售额`, value: formatInnovationSalesAmount(analysis.salesTotal), unit: "万元" },
     { icon: "map-pin", label: "四川落地率", detail: `累计落地四川 ${analysis.totals.landedSichuanCount} 个`, value: analysis.landedRate, unit: "%" },
     { icon: "folder-check", label: "落地品种建档率", detail: `累计建档 ${analysis.totals.southwestArchivedCount} 个`, value: analysis.archiveRate, unit: "%" }
   ];
@@ -637,7 +636,7 @@ function createInnovationPoolHighlights(analysis) {
         )
         .join("")}
     </ol>
-    <p class="innovation-trend-insight-note">统计口径随所选时段同步更新，便于快速识别上市、落地与建档进展。</p>
+    <p class="innovation-trend-insight-note">统计口径随所选时段同步更新；销售额按已录入的年度或月度销售数据汇总。</p>
   `;
   return aside;
 }
@@ -931,6 +930,68 @@ function summarizeTrendRows(rows) {
     }),
     { newDrugCount: 0, landedSichuanCount: 0, southwestArchivedCount: 0 }
   );
+}
+
+function getInnovativePoolSalesAmount(section, startMonth, endMonth) {
+  const salesColumns = getInnovativePoolSalesColumns(section);
+  if (!salesColumns.length) return 0;
+
+  return section.rows.reduce((total, row) => total + getRowSalesForRange(row, salesColumns, startMonth, endMonth), 0);
+}
+
+function getInnovativePoolSalesColumns(section) {
+  const columns = section?.columns || [];
+  return columns
+    .map((column) => {
+      const key = String(column.field || column.key || "");
+      const label = String(column.label || "").replace(/\s+/g, "");
+      const annualMatch = key.match(/^sales(\d{4})$/i) || label.match(/^(\d{4})年销售数据/);
+      if (annualMatch) return { key, year: Number(annualMatch[1]), month: null };
+
+      const monthlyMatch = label.match(/^(\d{4})[.年/-](\d{1,2})(?:月)?(?:销售数据)?$/) || key.match(/^(\d{4})(\d{1,2})$/);
+      if (!monthlyMatch) return null;
+
+      const year = Number(monthlyMatch[1]);
+      const month = Number(monthlyMatch[2]);
+      return month >= 1 && month <= 12 ? { key, year, month } : null;
+    })
+    .filter(Boolean);
+}
+
+function getRowSalesForRange(row, salesColumns, startMonth, endMonth) {
+  const startYear = Number(startMonth.slice(0, 4));
+  const endYear = Number(endMonth.slice(0, 4));
+  let total = 0;
+
+  for (let year = startYear; year <= endYear; year += 1) {
+    const annualColumn = salesColumns.find((column) => column.year === year && column.month === null);
+    const monthlyColumns = salesColumns.filter((column) => {
+      if (column.year !== year || column.month === null) return false;
+      const month = `${year}-${String(column.month).padStart(2, "0")}`;
+      return month >= startMonth && month <= endMonth;
+    });
+    const coversFullYear = startMonth <= `${year}-01` && endMonth >= `${year}-12`;
+
+    if (annualColumn && (coversFullYear || !monthlyColumns.length)) {
+      total += parseInnovationSalesAmount(getRowField(row, annualColumn.key));
+      continue;
+    }
+
+    total += monthlyColumns.reduce((sum, column) => sum + parseInnovationSalesAmount(getRowField(row, column.key)), 0);
+  }
+
+  return total;
+}
+
+function parseInnovationSalesAmount(value) {
+  const normalized = String(value ?? "").replace(/[，,]/g, "").replace(/[^\d.+-]/g, "");
+  const amount = Number(normalized);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function formatInnovationSalesAmount(value) {
+  const amount = Number(value) || 0;
+  return new Intl.NumberFormat("zh-CN", { maximumFractionDigits: amount >= 100 ? 0 : 1 }).format(amount);
 }
 
 function getSelectedMonths(months, filterValue) {
